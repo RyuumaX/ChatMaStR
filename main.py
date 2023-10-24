@@ -114,3 +114,4 @@ if __name__ == '__main__':
             retrieval_handler = PrintRetrievalHandler(st.container())
             response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
             st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+    #just a minor change to test Repo Synchronization
