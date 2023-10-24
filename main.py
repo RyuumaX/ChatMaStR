@@ -20,7 +20,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 
 os.environ['OPENAI_API_BASE'] = "http://149.11.242.18:16598/v1"
-#os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:20838/v1"
+# os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:20838/v1"
 os.environ['OPENAI_API_KEY'] = "EMPTY"
 
 
@@ -57,6 +57,7 @@ class PrintRetrievalHandler(BaseCallbackHandler):
             self.status.markdown(doc.page_content)
         self.status.update(state="complete")
 
+
 @st.cache_resource(ttl="1h")
 def configure_retriever():
     # Read documents
@@ -70,34 +71,38 @@ def configure_retriever():
     loaderURL = UnstructuredURLLoader(urls=urls)
     index = VectorstoreIndexCreator(embedding=embedding).from_loaders([loaderPDF, loaderURL])
 
-    # Define retriever
-    #retriever = index.vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 10})
+    # Define and configure retriever
+    # retriever = index.vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 10})
     retriever = index.vectorstore.as_retriever()
 
     return retriever
 
+
 if __name__ == '__main__':
 
-    #Streamlit Configuration Stuff
+    # Streamlit Configuration Stuff
     st.set_page_config(
         page_title="Lokales LLM des MaStR",
         page_icon="🤖"
     )
     st.header("Lokales LLM des MaStR")
     stream_handler = StreamHandler(st.empty())
+    st_chat_messages = StreamlitChatMessageHistory()
+    with st.sidebar:
+        temperature_slider = st.slider(
+            "Temperaturregler:",
+            0.0, 1.0,
+            value=0.1,
+            key="temp_slider",
+        )
 
-
-    #LLM Configuration
+    # LLM configuration. ChatOpenAI is merely a config object
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
     retriever = configure_retriever()
-
-    msgs = StreamlitChatMessageHistory()
-    memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
-
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
+    memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm, retriever=retriever, memory=memory
     )
-
 
     if "messages" not in st.session_state:
         st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
