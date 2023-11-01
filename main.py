@@ -19,8 +19,9 @@ from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 
-os.environ['OPENAI_API_BASE'] = "http://149.11.242.18:16598/v1"
-# os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:20838/v1"
+if not os.environ['OPENAI_API_BASE']:
+    os.environ['OPENAI_API_BASE'] = "http://149.11.242.18:16598/v1"
+#os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:16700/v1"
 os.environ['OPENAI_API_KEY'] = "EMPTY"
 
 
@@ -93,7 +94,7 @@ if __name__ == '__main__':
             "Temperaturregler:",
             0.0, 1.0,
             value=0.1,
-            key="temp_slider",
+            key="temperature_slider",
         )
 
     # LLM configuration. ChatOpenAI is merely a config object

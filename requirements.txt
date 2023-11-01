@@ -1,0 +1,8 @@
+streamlit
+openai
+altair
+pandas
+langchain
+unstructured
+chromadb
+tiktoken
