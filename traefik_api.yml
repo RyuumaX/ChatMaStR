@@ -1,0 +1,7 @@
+http:
+  routers:
+    api:
+      rule: Host(`a100.rc.th-b.com`)
+      service: api@internal
+      entrypoints:
+        - web

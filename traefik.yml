@@ -3,6 +3,8 @@ entryPoints:
     address: ':443'
 api:
   dashboard: true
+  insecure: true
+
 providers:
   docker:
     watch: true
