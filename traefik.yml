@@ -1,0 +1,11 @@
+entryPoints:
+  web:
+    address: ':443'
+    http:
+api:
+  dashboard: true
+providers:
+  docker:
+    watch: true
+    network: default
+    exposedByDefault: false
