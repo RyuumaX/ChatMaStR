@@ -1,7 +1,6 @@
 entryPoints:
   web:
     address: ':443'
-    http:
 api:
   dashboard: true
 providers:
