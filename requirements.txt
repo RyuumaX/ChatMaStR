@@ -1,8 +1,9 @@
 streamlit
-openai
+openai<1.0.0
 altair
 pandas
 langchain
 unstructured
 chromadb
 tiktoken
+anyio<4.0.0

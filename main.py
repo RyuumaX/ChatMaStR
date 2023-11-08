@@ -4,7 +4,7 @@ import os
 
 from langchain import OpenAI
 from langchain.chains import ConversationalRetrievalChain
-from langchain.chat_models import ChatOpenAI
+from langchain.llms.openai import OpenAIChat
 from langchain.document_loaders import TextLoader, BSHTMLLoader, UnstructuredURLLoader
 from langchain.document_loaders import PyPDFLoader
 from langchain.document_loaders import DirectoryLoader
@@ -21,8 +21,7 @@ from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 
 #if not os.environ['OPENAI_API_BASE']:
 #    os.environ['OPENAI_API_BASE'] = "http://149.11.242.18:16598/v1"
-if not os.environ['OPENAI_API_BASE']:
-    os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:10242/v1"
+os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:10242/v1"
 
 os.environ['OPENAI_API_KEY'] = "EMPTY"
 
@@ -101,7 +100,7 @@ if __name__ == '__main__':
         )
 
     # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
+    llm = OpenAIChat(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
     retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
     qa_chain = ConversationalRetrievalChain.from_llm(
