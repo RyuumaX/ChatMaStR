@@ -15,7 +15,6 @@ services:
     image: ghcr.io/ryuumax/chatmastr:master
     networks:
       - traefik
-      - default
     labels:
       - traefik.enable=true
       - traefik.http.routers.chatmastr.rule=Host(`a100.rc.th-b.com`) && PathPrefix(`/chatmastr`)

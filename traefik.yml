@@ -8,5 +8,5 @@ api:
 providers:
   docker:
     watch: true
-    network: default
+    network: traefik
     exposedByDefault: false
