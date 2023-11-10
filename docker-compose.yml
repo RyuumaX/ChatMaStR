@@ -23,6 +23,8 @@ services:
       - /home/user/chatmastr/KnowledgeBase:/KnowledgeBase/
     environment:
       - OPENAI_API_BASE=http://host.docker.internal:8082/v1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 networks:
   traefik:
     external: true
