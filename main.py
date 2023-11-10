@@ -4,7 +4,7 @@ import os
 
 from langchain import OpenAI
 from langchain.chains import ConversationalRetrievalChain
-from langchain.llms.openai import OpenAIChat
+from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import TextLoader, BSHTMLLoader, UnstructuredURLLoader
 from langchain.document_loaders import PyPDFLoader
 from langchain.document_loaders import DirectoryLoader
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         )
 
     # LLM configuration. ChatOpenAI is merely a config object
-    llm = OpenAIChat(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
     retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
     qa_chain = ConversationalRetrievalChain.from_llm(
