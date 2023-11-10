@@ -18,7 +18,6 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.chatmastr.rule=Host(`a100.rc.th-b.com`) && PathPrefix(`/chatmastr`)
-      - traefik.http.services.home.loadbalancer.server.port=8501
     volumes:
       - /home/user/chatmastr/KnowledgeBase:/KnowledgeBase/
 networks:
