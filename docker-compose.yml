@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 services:
   traefik:
     restart: unless-stopped
@@ -13,6 +13,7 @@ services:
 
   chatmastr:
     image: ghcr.io/ryuumax/chatmastr:master
+    pull_policy: always
     networks:
       - traefik
     labels:
