@@ -20,7 +20,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.chatmastr.rule=Host(`a100.rc.th-b.com`)
     volumes:
-      - /home/user/KnowledgeBase:/KnowledgeBase
+      - /home/user/KnowledgeBase:/app/KnowledgeBase
     environment:
       - OPENAI_API_BASE=http://host.docker.internal:8082/v1
     extra_hosts:
