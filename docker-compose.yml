@@ -22,7 +22,7 @@ services:
     volumes:
       - /home/user/chatmastr/KnowledgeBase:/KnowledgeBase/
     environment:
-      - OPENAI_API_BASE=172.17.0.1
+      - OPENAI_API_BASE=http://172.17.0.1:8082/v1
 networks:
   traefik:
     external: true
