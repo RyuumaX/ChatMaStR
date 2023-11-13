@@ -18,7 +18,7 @@ services:
       - traefik
     labels:
       - traefik.enable=true
-      - traefik.http.routers.chatmastr.rule=Host(`a100.rc.th-b.com`)
+      - traefik.http.routers.chatmastr.rule=Host(`a100.rc.th-b.com`) && Pathprefix(`/chatmastr`)
     volumes:
       - /home/user/KnowledgeBase:/app/KnowledgeBase
     environment:
