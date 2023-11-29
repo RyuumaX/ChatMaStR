@@ -5,15 +5,10 @@ import os
 from langchain import OpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import TextLoader, BSHTMLLoader, UnstructuredURLLoader
-from langchain.document_loaders import PyPDFLoader
-from langchain.document_loaders import DirectoryLoader
+from langchain.document_loaders import UnstructuredURLLoader
 from langchain.document_loaders import PyPDFDirectoryLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.indexes import VectorstoreIndexCreator
-from langchain.prompts import ChatPromptTemplate
-from langchain.prompts.chat import SystemMessage, HumanMessagePromptTemplate
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.schema import ChatMessage
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
