@@ -103,6 +103,7 @@ if __name__ == '__main__':
         llm, retriever=retriever, memory=memory
     )
 
+    #streamlit.session_state is streamlits global dictionary for savong session state
     if "messages" not in st.session_state:
         st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
 
