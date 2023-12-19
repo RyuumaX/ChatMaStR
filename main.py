@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # Streamlit Configuration Stuff
     st.set_page_config(
-        page_title="Lokales LLM des MaStR",
+        page_title="Lokales LLM des MaStR (Experimental)",
         page_icon="🤖"
     )
     st.header("Lokales LLM des MaStR")
