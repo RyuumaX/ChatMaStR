@@ -1,5 +1,6 @@
 streamlit
-openai<1.0.0
+openai
+llama-index
 altair
 pandas
 langchain
