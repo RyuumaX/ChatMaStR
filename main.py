@@ -84,7 +84,7 @@ if __name__ == '__main__':
         page_title="Lokales LLM des MaStR (Experimental)",
         page_icon="🤖"
     )
-    st.header("Lokales LLM des MaStR")
+    st.header("Lokales LLM des MaStR (Experimental)")
     stream_handler = StreamHandler(st.empty())
     st_chat_messages = StreamlitChatMessageHistory()
     with st.sidebar:
@@ -108,7 +108,8 @@ if __name__ == '__main__':
         st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
 
     for msg in st.session_state.messages:
-        st.chat_message(msg.role).write(msg.content)
+        icon = "regiocom_logo.png" if msg.role=="assistant" else ""
+        st.chat_message(msg.role, avatar=icon).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
         st.session_state.messages.append(ChatMessage(role="user", content=query))
