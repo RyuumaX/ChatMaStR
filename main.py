@@ -158,8 +158,9 @@ if __name__ == '__main__':
         st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
 
     for msg in st.session_state.messages:
-        icon = "./assets/regiocom_logo.png" if msg.role=="assistant" else ""
-        st.chat_message(msg.role, avatar=icon).write(msg.content)
+        #icon = "./assets/regiocom_logo.png" if msg.role=="assistant" else ""
+        #st.chat_message(msg.role, avatar=icon).write(msg.content)
+        st.chat_message(msg.role).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
         st.session_state.messages.append(ChatMessage(role="user", content=query))
