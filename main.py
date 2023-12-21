@@ -13,14 +13,13 @@ from langchain.schema import ChatMessage
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
-
-#if not os.environ['OPENAI_API_BASE']:
-#    os.environ['OPENAI_API_BASE'] = "http://149.11.242.18:16598/v1"
-if not os.environ['OPENAI_API_BASE']:
-    os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:10242/v1"
-
-os.environ['OPENAI_API_KEY'] = "EMPTY"
-
+from langchain.agents import initialize_agent
+from llama_index import VectorStoreIndex, SimpleDirectoryReader
+from llama_index import ServiceContext, VectorStoreIndex, StorageContext
+from llama_index.node_parser import SentenceWindowNodeParser
+from llama_index.indices.postprocessor import MetadataReplacementPostProcessor
+from llama_index.indices.postprocessor import SentenceTransformerRerank
+from llama_index import load_index_from_storage
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -71,10 +70,56 @@ def configure_retriever():
     index = VectorstoreIndexCreator(embedding=embedding).from_loaders([loaderPDF, loaderURL])
 
     # Define and configure retriever
-    # retriever = index.vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 10})
-    retriever = index.vectorstore.as_retriever()
+    retriever = index.vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 3, "fetch_k": 10, "lambda_mult": 0.8})
+    #retriever = index.vectorstore.as_retriever()
 
     return retriever
+
+
+def build_sentence_window_index(
+    documents,
+    llm,
+    embed_model="local:BAAI/bge-small-en-v1.5",
+    sentence_window_size=3,
+    save_dir="sentence_index",
+    ):
+    # create the sentence window node parser w/ default settings
+    node_parser = SentenceWindowNodeParser.from_defaults(
+        window_size=sentence_window_size,
+        window_metadata_key="window",
+        original_text_metadata_key="original_text",
+    )
+    sentence_context = ServiceContext.from_defaults(
+        llm=llm,
+        embed_model=embed_model,
+        node_parser=node_parser,
+    )
+    if not os.path.exists(save_dir):
+        sentence_index = VectorStoreIndex.from_documents(
+            documents, service_context=sentence_context
+        )
+        sentence_index.storage_context.persist(persist_dir=save_dir)
+    else:
+        sentence_index = load_index_from_storage(
+            StorageContext.from_defaults(persist_dir=save_dir),
+            service_context=sentence_context,
+        )
+
+    return sentence_index
+
+def get_sentence_window_query_engine(
+    sentence_index, similarity_top_k=6, rerank_top_n=2
+    ):
+    # define postprocessors
+    postproc = MetadataReplacementPostProcessor(target_metadata_key="window")
+    rerank = SentenceTransformerRerank(
+        top_n=rerank_top_n, model="BAAI/bge-reranker-base"
+    )
+
+    sentence_window_engine = sentence_index.as_query_engine(
+        similarity_top_k=similarity_top_k, node_postprocessors=[postproc, rerank]
+    )
+    return sentence_window_engine
 
 
 if __name__ == '__main__':
@@ -95,6 +140,7 @@ if __name__ == '__main__':
             key="temperature_slider",
         )
 
+    #RAG Retrieval Step - Langchain Version
     # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
     retriever = configure_retriever()
@@ -102,6 +148,10 @@ if __name__ == '__main__':
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm, retriever=retriever, memory=memory
     )
+
+    #RAG Retrieval Step - LlamaIndex Version
+    
+
 
     #streamlit.session_state is streamlits global dictionary for savong session state
     if "messages" not in st.session_state:
