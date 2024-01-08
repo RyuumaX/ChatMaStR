@@ -43,11 +43,11 @@ def create_embeddings_from_docs(docs, save_path):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, add_start_index=True)
     splits = text_splitter.split_documents(docs)
     print("==========first 5 splits==========\n")
-    print(splits[:5])
+    print(splits[:5], "\n")
     embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
     embeddings = embedding_model.embed_documents([split.page_content for split in splits])
-    print("==========first 5 embeddings:=========")
-    print(embeddings[:1])
+    print("==========first embedding:=========")
+    print(embeddings[0])
     vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_model, persist_directory=save_path)
 
 
