@@ -59,7 +59,7 @@ def configure_retriever():
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/chroma_db", embedding_function=embedding)
     docs = vectorstore.similarity_search(query="Was ist ein Balkonkraftwerk?", k=3)
-    print(docs[:1])
+    st.session_state["messages"] = [ChatMessage(role="assistant", content=docs[1].page_content)]
     retriever = vectorstore.as_retriever()
 
     return retriever
