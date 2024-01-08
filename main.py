@@ -54,7 +54,7 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 def configure_retriever():
     embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
 
-    # Define and configure retriever
+    # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./chroma_db", embedding_function=embedding)
     retriever = vectorstore.as_retriever()
 
