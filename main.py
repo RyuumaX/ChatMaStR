@@ -70,13 +70,6 @@ if __name__ == '__main__':
     st.header("Lokales LLM des MaStR (Experimental)")
     stream_handler = StreamHandler(st.empty())
     st_chat_messages = StreamlitChatMessageHistory()
-    with st.sidebar:
-        temperature_slider = st.slider(
-            "Temperaturregler:",
-            0.0, 1.0,
-            value=0.1,
-            key="temperature_slider",
-        )
 
     #RAG Retrieval Step - Langchain Version
     # LLM configuration. ChatOpenAI is merely a config object
