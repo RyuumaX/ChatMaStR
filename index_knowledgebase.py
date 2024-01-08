@@ -14,7 +14,10 @@ from langchain_community.embeddings.sentence_transformer import (
 
 def load_docs(documents_path):
     # Read documents
+    print("loading pdf-documents")
     pdf_loader = PyPDFDirectoryLoader(documents_path)
+    print("...done")
+    print("loading web-documents")
     web_loader = WebBaseLoader(
         web_paths=[
             "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
@@ -25,17 +28,23 @@ def load_docs(documents_path):
             parse_only=bs4.SoupStrainer(["h", "article", "li"])
         )
     )
+    print("...done")
     pdf_docs = pdf_loader.load()
     web_docs = web_loader.load()
     docs = []
     docs.extend(pdf_docs)
     docs.extend(web_docs)
+    print(docs[:10])
     return docs
 
 def create_embeddings_from_docs(docs, save_path):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_documents(docs)
+    print("first 5 splits:")
+    print(splits[:5])
     embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
+    print("first 5 embeddings:")
+    print(embedding[:5])
     vectorstore = Chroma.from_documents(documents=splits, embedding=embedding, persist_directory=save_path)
 
 
