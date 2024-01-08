@@ -8,11 +8,13 @@ from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import UnstructuredURLLoader
 from langchain.document_loaders import PyPDFDirectoryLoader
 from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain.indexes import VectorstoreIndexCreator
 from langchain.schema import ChatMessage
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
-from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
+from langchain_community.chat_message_histories import StreamlitChatMessageHistory
+#from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.vectorstores.chroma import Chroma
 
 

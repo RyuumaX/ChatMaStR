@@ -4,6 +4,7 @@ llama-index
 altair
 pandas
 langchain
+langchain-community
 unstructured
 chromadb
 tiktoken
