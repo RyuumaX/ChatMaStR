@@ -47,7 +47,7 @@ def create_embeddings_from_docs(docs, save_path):
     embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
     embeddings = embedding_model.embed_documents([split.page_content for split in splits])
     print("==========first 5 embeddings:=========")
-    print(embeddings[:5])
+    print(embeddings[:1])
     vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_model, persist_directory=save_path)
 
 
