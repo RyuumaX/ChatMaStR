@@ -5,6 +5,7 @@ altair
 pandas
 langchain
 langchain-community
+langchain-openai
 unstructured
 chromadb
 tiktoken

@@ -3,7 +3,7 @@ import argparse
 import bs4
 import os
 from langchain.indexes import VectorstoreIndexCreator
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
 from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader, UnstructuredURLLoader, PyPDFDirectoryLoader, WebBaseLoader
