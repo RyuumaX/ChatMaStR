@@ -1,20 +1,13 @@
 import streamlit as st
-import openai
 import os
 
-from langchain import OpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import UnstructuredURLLoader
-from langchain.document_loaders import PyPDFDirectoryLoader
-from langchain.embeddings import OpenAIEmbeddings
 from langchain_community.embeddings import OpenAIEmbeddings
-from langchain.indexes import VectorstoreIndexCreator
 from langchain.schema import ChatMessage
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-#from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.vectorstores.chroma import Chroma
 
 
@@ -59,7 +52,7 @@ def configure_retriever():
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/chroma_db", embedding_function=embedding)
     docs = vectorstore.similarity_search(query="Was ist ein Balkonkraftwerk?", k=3)
-    st.session_state["messages"] = [ChatMessage(role="assistant", content=docs[1].page_content)]
+    st.session_state["messages"] = [ChatMessage(role="assistant", content=len(docs))]
     retriever = vectorstore.as_retriever()
 
     return retriever
