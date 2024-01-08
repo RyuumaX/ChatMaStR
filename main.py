@@ -50,7 +50,7 @@ def configure_retriever():
     embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
 
     # load persisted vectorstore
-    vectorstore = Chroma(persist_directory="./KnowledgeBase/chroma_db")
+    vectorstore = Chroma(persist_directory="./KnowledgeBase/chroma_db", embedding_function=embedding)
     docs = vectorstore.similarity_search(query="Was ist ein Balkonkraftwerk?", k=3)
     st.session_state["messages"] = [ChatMessage(role="assistant", content=len(docs))]
     retriever = vectorstore.as_retriever()
