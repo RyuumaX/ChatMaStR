@@ -51,9 +51,9 @@ def configure_retriever():
 
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)
-    docs = vectorstore.similarity_search(query="Wer ist registrierungspflichtig?")
-    st.session_state["messages"] = [ChatMessage(role="assistant", content=len(docs))]
-    retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={'k': 6, 'lambda_mult': 0.25})
+    docs = vectorstore.similarity_search(query="Wie registriere ich ein Balkonkraftwerk?")
+    st.session_state["messages"] = [ChatMessage(role="assistant", content=docs[0].page_content)]
+    retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={'k': 3, 'fetch_k': 30})
 
     return retriever
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     #RAG Retrieval Step - Langchain Version
     # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0)
     retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
     qa_chain = ConversationalRetrievalChain.from_llm(

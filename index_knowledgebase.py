@@ -34,13 +34,10 @@ def load_docs(documents_path):
     docs = []
     docs.extend(pdf_docs)
     docs.extend(web_docs)
-    print("==========erste 10 Dokumente==========\n")
-    print(docs[:10])
-    print("\n")
     return docs
 
 def create_embeddings_from_docs(docs, save_path):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100, add_start_index=True)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, add_start_index=True)
     splits = text_splitter.split_documents(docs)
     print("==========first 5 splits==========\n")
     print(splits[:5], "\n")
@@ -49,7 +46,7 @@ def create_embeddings_from_docs(docs, save_path):
     print("==========first embedding:=========")
     print(embeddings[0])
     vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_model, persist_directory=save_path)
-    docs = vectorstore.similarity_search(query="Wer ist registrierungspflichtig?")
+    docs = vectorstore.similarity_search(query="Wie registriere ich mein Balkonkraftwerk?")
     print(docs[0].page_content)
 
 
