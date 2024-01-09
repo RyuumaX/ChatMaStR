@@ -49,6 +49,8 @@ def create_embeddings_from_docs(docs, save_path):
     print("==========first embedding:=========")
     print(embeddings[0])
     vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_model, persist_directory=save_path)
+    docs = vectorstore.similarity_search(query="Wer ist registrierungspflichtig?")
+    print(docs[0].page_content)
 
 
 
