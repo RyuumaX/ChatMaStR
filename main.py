@@ -53,7 +53,7 @@ def configure_retriever():
     vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)
     docs = vectorstore.similarity_search(query="Wer ist registrierungspflichtig?")
     st.session_state["messages"] = [ChatMessage(role="assistant", content=len(docs))]
-    retriever = vectorstore.as_retriever()
+    retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={'k': 6, 'lambda_mult': 0.25})
 
     return retriever
 
