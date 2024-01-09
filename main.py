@@ -81,22 +81,16 @@ if __name__ == '__main__':
 
     # Streamlit Configuration Stuff
     st.set_page_config(
-        page_title="Lokales LLM des MaStR",
-        page_icon="🤖"
+        page_title="MaStR Chat-Assistent",
+        page_icon="./resources/regiocom.svg"
     )
-    st.header("Lokales LLM des MaStR")
+    st.image(["./resources/regiocom.svg", "./resources/Bundesnetzagentur_Logo.svg", "./resources/MaStR_Logo.svg"])
+    st.header("MaStR Chat-Assistent")
     stream_handler = StreamHandler(st.empty())
     st_chat_messages = StreamlitChatMessageHistory()
-    with st.sidebar:
-        temperature_slider = st.slider(
-            "Temperaturregler:",
-            0.0, 1.0,
-            value=0.1,
-            key="temperature_slider",
-        )
 
     # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
     retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
     qa_chain = ConversationalRetrievalChain.from_llm(
