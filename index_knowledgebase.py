@@ -40,7 +40,7 @@ def load_docs(documents_path):
     return docs
 
 def create_embeddings_from_docs(docs, save_path):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, add_start_index=True)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100, add_start_index=True)
     splits = text_splitter.split_documents(docs)
     print("==========first 5 splits==========\n")
     print(splits[:5], "\n")
