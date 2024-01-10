@@ -82,35 +82,48 @@ if __name__ == '__main__':
     # Streamlit Configuration Stuff
     st.set_page_config(
         page_title="MaStR Chat-Assistent",
-        page_icon="./resources/regiocom.svg"
+        page_icon="./resources/regiocom.png",
+        layout="wide"
     )
-    st.image(["./resources/regiocom.svg", "./resources/Bundesnetzagentur_Logo.svg", "./resources/MaStR_Logo.svg"])
-    st.header("MaStR Chat-Assistent")
-    stream_handler = StreamHandler(st.empty())
-    st_chat_messages = StreamlitChatMessageHistory()
+    col1, col2, col3 = st.columns([1, 2, 1])
 
-    # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
-    retriever = configure_retriever()
-    memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
-    qa_chain = ConversationalRetrievalChain.from_llm(
-        llm, retriever=retriever, memory=memory
-    )
+    with col1:
+        st.image("./resources/regiocom.png", width=300)
 
-    #streamlit.session_state is streamlits global dictionary for savong session state
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
+    with col3:
+        st.image("./resources/Technische_Hochschule_Brandenburg_Logo.png", width=300)
 
-    for msg in st.session_state.messages:
-        st.chat_message(msg.role).write(msg.content)
+    with col2:
+        st.image(["./resources/MaStR_Logo.png", "./resources/Bundesnetzagentur_Logo.png"], width=300)
+        st.header("MaStR Chat-Assistent")
 
-    if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        st.session_state.messages.append(ChatMessage(role="user", content=query))
-        st.chat_message("user").write(query)
+    col4, col5, col6 = st.columns([1, 2, 1])
+    with col5:
+        stream_handler = StreamHandler(st.empty())
+        st_chat_messages = StreamlitChatMessageHistory()
 
-        with st.chat_message("assistant"):
-            stream_handler = StreamHandler(st.empty())
-            retrieval_handler = PrintRetrievalHandler(st.container())
-            #finally, run the chain, which invokes the llm-chatcompletion under the hood
-            response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-            st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+        # LLM configuration. ChatOpenAI is merely a config object
+        llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
+        retriever = configure_retriever()
+        memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
+        qa_chain = ConversationalRetrievalChain.from_llm(
+            llm, retriever=retriever, memory=memory
+        )
+
+        #streamlit.session_state is streamlits global dictionary for savong session state
+        if "messages" not in st.session_state:
+            st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
+
+        for msg in st.session_state.messages:
+            st.chat_message(msg.role).write(msg.content)
+
+        if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
+            st.session_state.messages.append(ChatMessage(role="user", content=query))
+            st.chat_message("user").write(query)
+
+            with st.chat_message("assistant"):
+                stream_handler = StreamHandler(st.empty())
+                retrieval_handler = PrintRetrievalHandler(st.container())
+                #finally, run the chain, which invokes the llm-chatcompletion under the hood
+                response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+                st.session_state.messages.append(ChatMessage(role="assistant", content=response))
