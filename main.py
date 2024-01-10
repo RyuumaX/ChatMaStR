@@ -81,42 +81,49 @@ if __name__ == '__main__':
 
     # Streamlit Configuration Stuff
     st.set_page_config(
-        page_title="Lokales LLM des MaStR",
-        page_icon="🤖"
+        page_title="MaStR Chat-Assistent",
+        page_icon="./resources/regiocom.png",
+        layout="wide"
     )
-    st.header("Lokales LLM des MaStR")
-    stream_handler = StreamHandler(st.empty())
-    st_chat_messages = StreamlitChatMessageHistory()
-    with st.sidebar:
-        temperature_slider = st.slider(
-            "Temperaturregler:",
-            0.0, 1.0,
-            value=0.1,
-            key="temperature_slider",
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col1:
+        st.image("./resources/regiocom.png", width=300)
+
+    with col3:
+        st.image("./resources/Technische_Hochschule_Brandenburg_Logo.png", width=300)
+
+    with col2:
+        st.image(["./resources/MaStR_Logo.png", "./resources/Bundesnetzagentur_Logo.png"], width=300)
+        st.header("MaStR Chat-Assistent")
+
+    col4, col5, col6 = st.columns([1, 2, 1])
+    with col5:
+        stream_handler = StreamHandler(st.empty())
+        st_chat_messages = StreamlitChatMessageHistory()
+
+        # LLM configuration. ChatOpenAI is merely a config object
+        llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
+        retriever = configure_retriever()
+        memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
+        qa_chain = ConversationalRetrievalChain.from_llm(
+            llm, retriever=retriever, memory=memory
         )
 
-    # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
-    retriever = configure_retriever()
-    memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
-    qa_chain = ConversationalRetrievalChain.from_llm(
-        llm, retriever=retriever, memory=memory
-    )
+        #streamlit.session_state is streamlits global dictionary for savong session state
+        if "messages" not in st.session_state:
+            st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
 
-    #streamlit.session_state is streamlits global dictionary for savong session state
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
+        for msg in st.session_state.messages:
+            st.chat_message(msg.role).write(msg.content)
 
-    for msg in st.session_state.messages:
-        st.chat_message(msg.role).write(msg.content)
+        if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
+            st.session_state.messages.append(ChatMessage(role="user", content=query))
+            st.chat_message("user").write(query)
 
-    if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        st.session_state.messages.append(ChatMessage(role="user", content=query))
-        st.chat_message("user").write(query)
-
-        with st.chat_message("assistant"):
-            stream_handler = StreamHandler(st.empty())
-            retrieval_handler = PrintRetrievalHandler(st.container())
-            #finally, run the chain, which invokes the llm-chatcompletion under the hood
-            response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-            st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+            with st.chat_message("assistant"):
+                stream_handler = StreamHandler(st.empty())
+                retrieval_handler = PrintRetrievalHandler(st.container())
+                #finally, run the chain, which invokes the llm-chatcompletion under the hood
+                response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+                st.session_state.messages.append(ChatMessage(role="assistant", content=response))
