@@ -14,13 +14,12 @@ from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 
-#if not os.environ['OPENAI_API_BASE']:
+# if not os.environ['OPENAI_API_BASE']:
 #    os.environ['OPENAI_API_BASE'] = "http://149.11.242.18:16598/v1"
 if not os.environ['OPENAI_API_BASE']:
     os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:10242/v1"
 
 os.environ['OPENAI_API_KEY'] = "EMPTY"
-
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -60,7 +59,7 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 @st.cache_resource(ttl="1h")
 def configure_retriever():
     # Read documents
-    embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
+    embedding = OpenAIEmbeddings(model="Llama-2-13b-german")
     loaderPDF = PyPDFDirectoryLoader('./KnowledgeBase/')
     urls = [
         "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
@@ -110,7 +109,7 @@ if __name__ == '__main__':
             llm, retriever=retriever, memory=memory
         )
 
-        #streamlit.session_state is streamlits global dictionary for savong session state
+        # streamlit.session_state is streamlits global dictionary for savong session state
         if "messages" not in st.session_state:
             st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
 
@@ -124,6 +123,6 @@ if __name__ == '__main__':
             with st.chat_message("assistant"):
                 stream_handler = StreamHandler(st.empty())
                 retrieval_handler = PrintRetrievalHandler(st.container())
-                #finally, run the chain, which invokes the llm-chatcompletion under the hood
+                # finally, run the chain, which invokes the llm-chatcompletion under the hood
                 response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
                 st.session_state.messages.append(ChatMessage(role="assistant", content=response))
