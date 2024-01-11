@@ -49,8 +49,7 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 @st.cache_resource(ttl="1h")
 def configure_retriever():
     embedding = HuggingFaceEmbeddings(
-        model_name="aari1995/German_Semantic_STS_V2", # Provide the pre-trained model's path
-        model_kwargs={'device': 1},  # Pass the model configuration options
+        model_name="aari1995/German_Semantic_STS_V2"
     )
 
     # load persisted vectorstore
