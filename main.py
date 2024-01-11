@@ -2,6 +2,7 @@ import streamlit as st
 import os
 
 from langchain.chains import ConversationalRetrievalChain
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain.schema import ChatMessage
@@ -47,7 +48,11 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 
 @st.cache_resource(ttl="1h")
 def configure_retriever():
-    embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
+    embedding = HuggingFaceEmbeddings(
+        model_name="aari1995/German_Semantic_STS_V2", # Provide the pre-trained model's path
+        model_kwargs={'device': 'cpu'},  # Pass the model configuration options
+        encode_kwargs={'normalize_embeddings': False}  # Pass the encoding options
+    )
 
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)

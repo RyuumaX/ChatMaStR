@@ -10,6 +10,7 @@ from langchain_community.document_loaders import TextLoader, UnstructuredURLLoad
 from langchain_community.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddings,
 )
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 
 def load_docs(documents_path):
@@ -41,7 +42,11 @@ def create_embeddings_from_docs(docs, save_path):
     splits = text_splitter.split_documents(docs)
     print("==========first 5 splits==========\n")
     print(splits[:5], "\n")
-    embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
+    embedding_model = HuggingFaceEmbeddings(
+        model_name="aari1995/German_Semantic_STS_V2", # Provide the pre-trained model's path
+        model_kwargs={'device': 'cpu'},  # Pass the model configuration options
+        encode_kwargs={'normalize_embeddings': False}  # Pass the encoding options
+    )
     embeddings = embedding_model.embed_documents([split.page_content for split in splits])
     print("==========first embedding:=========")
     print(embeddings[0])
@@ -63,5 +68,6 @@ if __name__ == "__main__":
                                                   "the embeddings is to be saved.")
     args = argparser.parse_args()
 
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     docs = load_docs(documents_path=args.directory)
     create_embeddings_from_docs(docs, save_path=args.output)
