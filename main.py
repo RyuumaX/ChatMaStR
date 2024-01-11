@@ -50,14 +50,11 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 def configure_retriever():
     embedding = HuggingFaceEmbeddings(
         model_name="aari1995/German_Semantic_STS_V2", # Provide the pre-trained model's path
-        model_kwargs={'device': 'cpu'},  # Pass the model configuration options
-        encode_kwargs={'normalize_embeddings': False}  # Pass the encoding options
+        model_kwargs={'device': 1},  # Pass the model configuration options
     )
 
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)
-    docs = vectorstore.similarity_search(query="Wie registriere ich ein Balkonkraftwerk?")
-    st.session_state["messages"] = [ChatMessage(role="assistant", content=docs[0].page_content)]
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5})
 
     return retriever
