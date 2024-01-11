@@ -59,7 +59,7 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 @st.cache_resource(ttl="1h")
 def configure_retriever():
     # Read documents
-    embedding = OpenAIEmbeddings(model="Llama-2-13b-german")
+    embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
     loaderPDF = PyPDFDirectoryLoader('./KnowledgeBase/')
     urls = [
         "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
