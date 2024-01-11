@@ -43,9 +43,7 @@ def create_embeddings_from_docs(docs, save_path):
     print("==========first 5 splits==========\n")
     print(splits[:5], "\n")
     embedding_model = HuggingFaceEmbeddings(
-        model_name="aari1995/German_Semantic_STS_V2", # Provide the pre-trained model's path
-        model_kwargs={'device': 'cpu'},  # Pass the model configuration options
-        encode_kwargs={'normalize_embeddings': False}  # Pass the encoding options
+        model_name="aari1995/German_Semantic_STS_V2"
     )
     embeddings = embedding_model.embed_documents([split.page_content for split in splits])
     print("==========first embedding:=========")
