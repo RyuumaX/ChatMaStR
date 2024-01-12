@@ -124,9 +124,3 @@ if __name__ == '__main__':
             # finally, run the chain, which invokes the llm-chatcompletion under the hood
             response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
             st.session_state.messages.append(ChatMessage(role="assistant", content=response))
-            with st.chat_message("assistant"):
-                stream_handler = StreamHandler(st.empty())
-                retrieval_handler = PrintRetrievalHandler(st.container())
-                # finally, run the chain, which invokes the llm-chatcompletion under the hood
-                response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-                st.session_state.messages.append(ChatMessage(role="assistant", content=response))
