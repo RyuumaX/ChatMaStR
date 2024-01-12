@@ -85,9 +85,10 @@ if __name__ == '__main__':
         page_icon="./resources/regiocom.png",
         layout="wide"
     )
-    col1, col2, col3 = st.columns([1, 2, 1])
-
+    
+    col1, col2, col3 = st.columns(3)
     with col1:
+<<<<<<< Updated upstream
         st.image("./resources/regiocom.png", width=300)
 
     with col3:
@@ -127,3 +128,37 @@ if __name__ == '__main__':
                 #finally, run the chain, which invokes the llm-chatcompletion under the hood
                 response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
                 st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+=======
+            st.write
+    st.image("./resources/logo_banner.png")
+    st.header("MaStR Chat-Assistent")
+
+    stream_handler = StreamHandler(st.empty())
+    st_chat_messages = StreamlitChatMessageHistory()
+
+    # LLM configuration. ChatOpenAI is merely a config object
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
+    retriever = configure_retriever()
+    memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
+    qa_chain = ConversationalRetrievalChain.from_llm(
+        llm, retriever=retriever, memory=memory
+    )
+
+    # streamlit.session_state is streamlits global dictionary for savong session state
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
+
+    for msg in st.session_state.messages:
+        st.chat_message(msg.role).write(msg.content)
+
+    if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
+        st.session_state.messages.append(ChatMessage(role="user", content=query))
+        st.chat_message("user").write(query)
+
+        with st.chat_message("assistant"):
+            stream_handler = StreamHandler(st.empty())
+            retrieval_handler = PrintRetrievalHandler(st.container())
+            # finally, run the chain, which invokes the llm-chatcompletion under the hood
+            response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+            st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+>>>>>>> Stashed changes
