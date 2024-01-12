@@ -85,7 +85,7 @@ if __name__ == '__main__':
         layout="wide"
     )
     
-    col1, col2, col3 = st.columns([1, 3, 1])
+    col1, col2, col3 = st.columns([0.5, 4, 0.5])
     with col1:
         st.write(' ')
 
