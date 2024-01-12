@@ -1,9 +1,9 @@
-fastchat_dir =
+fastchat_dir="/root/FastChat"
 
-if [ ! -e $fastchat_dir ]
+if [ ! -d $fastchat_dir ]
 then
   git clone https://github.com/lm-sys/FastChat.git
-  if [ ! -e $fastchat_dir ]
+  if [ ! -d $fastchat_dir ]
     then
       echo "Konnte Fastchat nicht herunterladen."
       exit 1
@@ -18,7 +18,7 @@ fi
 
 python3 -m fastchat.serve.controller --host 0.0.0.0
 
-python3 -m fastchat.serve.model_worker --model-names "gpt-3.5-turbo,text-davinci-003,text-embedding-ada-002" --model-path jphme/em_german_7b_v01 --host 0.0.0.0
+python3 -m fastchat.serve.model_worker --model-names "gpt-3.5-turbo,text-davinci-003,text-embedding-ada-002,Llama-2-13b-german" --model-path jphme/em_german_7b_v01 --host 0.0.0.0
 
 python3 -m fastchat.serve.openai_api_server --host 0.0.0.0 --port 7860
 
