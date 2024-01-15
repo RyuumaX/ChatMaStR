@@ -89,7 +89,7 @@ if __name__ == '__main__':
         st.write(' ')
 
     with col2:
-        st.image("./resources/logo_banner.png", use_column_width=True)
+        st.image("./resources/logo_banner_no_bnetza.png", use_column_width=True)
         st.header("MaStR Chat-Assistent")
 
     with col3:
