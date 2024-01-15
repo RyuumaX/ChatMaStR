@@ -49,8 +49,7 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 @st.cache_resource(ttl="1h")
 def configure_retriever():
     embedding = HuggingFaceEmbeddings(
-        model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2",
-        model_kwargs={'device': 'cuda:1'}
+        model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2"
     )
 
     # load persisted vectorstore
