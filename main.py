@@ -104,5 +104,5 @@ if __name__ == '__main__':
             stream_handler = StreamHandler(st.empty())
             retrieval_handler = PrintRetrievalHandler(st.container())
             # finally, run the chain, which invokes the llm-chatcompletion under the hood
-            response = qa_chain.invoke(query, callbacks=[retrieval_handler, stream_handler])
+            response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
             st.session_state.messages.append(ChatMessage(role="assistant", content=response))
