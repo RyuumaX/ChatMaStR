@@ -3,6 +3,9 @@ openai
 altair
 pandas
 langchain
+langchain-community
+langchain-openai
+sentence-transformers==2.2.2
 unstructured
 chromadb
 tiktoken
