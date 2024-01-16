@@ -81,7 +81,7 @@ if __name__ == '__main__':
     st_chat_messages = StreamlitChatMessageHistory()
 
     # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0)
     retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
     qa_chain = ConversationalRetrievalChain.from_llm(
