@@ -13,6 +13,8 @@ from langchain.schema import ChatMessage
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores.chroma import Chroma
 
 # if not os.environ['OPENAI_API_BASE']:
 #    os.environ['OPENAI_API_BASE'] = "http://149.11.242.18:16598/v1"
@@ -57,20 +59,13 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 
 @st.cache_resource(ttl="1h")
 def configure_retriever():
-    # Read documents
-    embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
-    loaderPDF = PyPDFDirectoryLoader('./KnowledgeBase/')
-    urls = [
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendAnlagen.html",
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendFristen.html"
-    ]
-    loaderURL = UnstructuredURLLoader(urls=urls)
-    index = VectorstoreIndexCreator(embedding=embedding).from_loaders([loaderPDF, loaderURL])
+    embedding = HuggingFaceEmbeddings(
+        model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2"
+    )
 
-    # Define and configure retriever
-    # retriever = index.vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 10})
-    retriever = index.vectorstore.as_retriever()
+    # load persisted vectorstore
+    vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)
+    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5})
 
     return retriever
 
@@ -122,5 +117,5 @@ if __name__ == '__main__':
             stream_handler = StreamHandler(st.empty())
             retrieval_handler = PrintRetrievalHandler(st.container())
             # finally, run the chain, which invokes the llm-chatcompletion under the hood
-            response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+            response = qa_chain.invoke(query, callbacks=[retrieval_handler, stream_handler])
             st.session_state.messages.append(ChatMessage(role="assistant", content=response))
