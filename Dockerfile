@@ -1,6 +1,6 @@
 # app/Dockerfile
 
-FROM nvidia/cuda:12.2.0-base-ubuntu22.04
+FROM python:3.10-slim
 
 WORKDIR /app
 
