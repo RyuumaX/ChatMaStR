@@ -1,26 +1,14 @@
 import streamlit as st
-import openai
 import os
 
-from langchain import OpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import UnstructuredURLLoader
-from langchain.document_loaders import PyPDFDirectoryLoader
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.indexes import VectorstoreIndexCreator
 from langchain.schema import ChatMessage
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
-
-# if not os.environ['OPENAI_API_BASE']:
-#    os.environ['OPENAI_API_BASE'] = "http://149.11.242.18:16598/v1"
-os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:23106/v1"
-
-os.environ['OPENAI_API_KEY'] = "EMPTY"
 
 
 class StreamHandler(BaseCallbackHandler):
