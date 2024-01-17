@@ -43,8 +43,7 @@ def create_embeddings_from_docs(docs, save_path):
     print("==========first 5 splits==========\n")
     print(splits[:5], "\n")
     embedding_model = HuggingFaceEmbeddings(
-        model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2",
-        model_kwargs={'device': 'cuda:1'}
+        model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2"
     )
     embeddings = embedding_model.embed_documents([split.page_content for split in splits])
     print("==========first embedding:=========")
