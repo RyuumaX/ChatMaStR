@@ -66,16 +66,13 @@ if __name__ == '__main__':
         layout="wide"
     )
     
-    col1, col2, col3 = st.columns([0.5, 4, 0.5])
+    _, col1, _ = st.columns([0.5, 4, 0.5])
     with col1:
-        st.write(' ')
-
-    with col2:
         st.image("./resources/logo_banner_no_bnetza.png", use_column_width=True)
-        st.header("MaStR Chat-Assistent")
 
-    with col3:
-        st.write(' ')
+    _, col2, _ = st.columns([2, 1, 2])
+    with col2:
+        st.header("MaStR Chat-Assistent")
 
     stream_handler = StreamHandler(st.empty())
     st_chat_messages = StreamlitChatMessageHistory()
