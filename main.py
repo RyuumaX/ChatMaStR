@@ -2,7 +2,7 @@ import streamlit as st
 import os
 
 from langchain.chains import ConversationalRetrievalChain
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai.chat_models import ChatOpenAI
 from langchain.schema import ChatMessage
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
