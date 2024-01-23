@@ -10,6 +10,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.vectorstores.chroma import Chroma
 
+os.environ['OPENAI_API_BASE'] = "http://31.12.82.146:23106/v1"
 
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container: st.delta_generator.DeltaGenerator, initial_text: str = ""):
