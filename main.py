@@ -2,6 +2,9 @@ import streamlit as st
 import os
 
 from langchain.chains import ConversationalRetrievalChain
+from langchain.retrievers import ParentDocumentRetriever
+from langchain.storage import InMemoryStore
+from langchain_community.document_loaders import PyPDFDirectoryLoader, WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_openai.chat_models import ChatOpenAI
 from langchain.schema import ChatMessage
@@ -9,6 +12,8 @@ from langchain.callbacks.base import BaseCallbackHandler
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.vectorstores.chroma import Chroma
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import bs4
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -46,18 +51,51 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever():
+def configure_retriever(knowledgebase):
+
     embedding = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2",
-#temporarily disabled
-#        model_kwargs={'device': 'cuda:1'}
+        #temporarily disabled
+        #model_kwargs={'device': 'cuda:1'}
     )
-
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)
-    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5})
 
-    return retriever
+    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
+    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=80)
+    store = InMemoryStore()
+    big_chunk_retriever = ParentDocumentRetriever(
+        vectorstore=vectorstore,
+        store=store,
+        parentsplitter=parentsplitter,
+        childsplitter=childsplitter
+    )
+    big_chunk_retriever.add_documents(knowledgebase)
+
+    #retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5})
+
+    return big_chunk_retriever
+
+
+def load_knowledgebase(path):
+    # Read documents
+    pdf_loader = PyPDFDirectoryLoader(path)
+    web_loader = WebBaseLoader(
+        web_paths=[
+            "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
+            "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendAnlagen.html",
+            "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendFristen.html"
+        ],
+        bs_kwargs=dict(
+            parse_only=bs4.SoupStrainer(["h", "article", "li"])
+        )
+    )
+    pdf_docs = pdf_loader.load()
+    web_docs = web_loader.load()
+    docs = []
+    docs.extend(pdf_docs)
+    docs.extend(web_docs)
+    return docs
 
 
 if __name__ == '__main__':
@@ -73,10 +111,11 @@ if __name__ == '__main__':
     #RAG Retrieval Step - Langchain Version
     # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0)
-    retriever = configure_retriever()
+    knowledgebase = load_knowledgebase(path="./KnowledgeBase/")
+    retriever = configure_retriever(knowledgebase)
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
     qa_chain = ConversationalRetrievalChain.from_llm(
-        llm, retriever=retriever, memory=memory
+        llm, chain_type="stuff", retriever=retriever, memory=memory,
     )
 
 
