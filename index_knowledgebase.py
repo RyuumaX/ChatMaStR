@@ -35,7 +35,7 @@ def load_docs(documents_path):
     docs = []
     docs.extend(pdf_docs)
     docs.extend(web_docs)
-    print("Insgesamt " + len(docs) + "Dokumente.")
+    print("Insgesamt " + str(len(docs)) + "Dokumente.")
     return docs
 
 def create_embeddings_from_docs(docs, save_path):
