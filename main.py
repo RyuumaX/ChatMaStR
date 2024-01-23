@@ -68,7 +68,8 @@ def configure_retriever(knowledgebase):
         vectorstore=vectorstore,
         store=store,
         parentsplitter=parentsplitter,
-        childsplitter=childsplitter
+        childsplitter=childsplitter,
+        search_kwargs={'k': 3}
     )
     big_chunk_retriever.add_documents(knowledgebase)
 
