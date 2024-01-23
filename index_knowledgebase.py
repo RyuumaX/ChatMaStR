@@ -35,17 +35,18 @@ def load_docs(documents_path):
     docs = []
     docs.extend(pdf_docs)
     docs.extend(web_docs)
+    print("Insgesamt " + len(docs) + "Dokumente.")
     return docs
 
 def create_embeddings_from_docs(docs, save_path):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, add_start_index=True)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=80, add_start_index=True)
     splits = text_splitter.split_documents(docs)
-    print("==========first 5 splits==========\n")
-    print(splits[:5], "\n")
+    print("==========first 3 splits==========\n")
+    print(splits[:3], "\n")
     embedding_model = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2"
     )
-    embeddings = embedding_model.embed_documents([split.page_content for split in splits])
+    embeddings = embedding_model.embed_documents([splits[0].page_content])
     print("==========first embedding:=========")
     print(embeddings[0])
     vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_model, persist_directory=save_path)
