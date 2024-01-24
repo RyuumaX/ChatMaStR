@@ -51,8 +51,8 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever(_knowledgebase):
-
+def configure_retriever():
+    knowledgebase = load_knowledgebase(path="./KnowledgeBase/")
     embedding = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2",
         #temporarily disabled
@@ -71,7 +71,7 @@ def configure_retriever(_knowledgebase):
         childsplitter=childsplitter,
         search_kwargs={'k': 3}
     )
-    big_chunk_retriever.add_documents(_knowledgebase)
+    big_chunk_retriever.add_documents(knowledgebase)
 
     #retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5})
 
@@ -112,8 +112,7 @@ if __name__ == '__main__':
     #RAG Retrieval Step - Langchain Version
     # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0)
-    knowledgebase = load_knowledgebase(path="./KnowledgeBase/")
-    retriever = configure_retriever(knowledgebase)
+    retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm, chain_type="stuff", retriever=retriever, memory=memory,
