@@ -9,8 +9,8 @@ RUN apk add -y \
     build-essential \
     curl \
     software-properties-common \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+    git
+    #&& rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
