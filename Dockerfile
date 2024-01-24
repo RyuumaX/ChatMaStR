@@ -4,12 +4,12 @@ FROM python:3.10-alpine3.19
 
 WORKDIR /app
 
-#RUN apk update
-#RUN apk add build-essential \
-#    curl \
-#    software-properties-common \
-#    git
-#    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update
+RUN apt-get install -y build-essential \
+    curl \
+    software-properties-common \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
