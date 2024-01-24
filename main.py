@@ -51,7 +51,7 @@ class PrintRetrievalHandler(BaseCallbackHandler):
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever(knowledgebase):
+def configure_retriever(_knowledgebase):
 
     embedding = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2",
