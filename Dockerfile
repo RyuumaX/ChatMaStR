@@ -1,11 +1,11 @@
 # app/Dockerfile
 
-FROM python:3.10-slim
+FROM python:3.10-alpine3.19
 
 WORKDIR /app
 
-RUN apt-get update
-RUN apt-get install -y \
+RUN apk get update
+RUN apk get install -y \
     build-essential \
     curl \
     software-properties-common \
