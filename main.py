@@ -71,7 +71,7 @@ def configure_retriever(_knowledgebase):
         childsplitter=childsplitter,
         search_kwargs={'k': 3}
     )
-    big_chunk_retriever.add_documents(knowledgebase)
+    big_chunk_retriever.add_documents(_knowledgebase)
 
     #retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5})
 
