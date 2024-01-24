@@ -4,8 +4,8 @@ FROM python:3.10-alpine3.19
 
 WORKDIR /app
 
-RUN apk get update
-RUN apk get install -y \
+RUN apk add update
+RUN apk add install -y \
     build-essential \
     curl \
     software-properties-common \
