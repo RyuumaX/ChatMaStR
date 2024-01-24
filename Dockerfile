@@ -1,6 +1,6 @@
 # app/Dockerfile
 
-FROM python:3.10-alpine3.19
+FROM python:3.10-slim
 
 WORKDIR /app
 
