@@ -67,7 +67,7 @@ def configure_retriever():
     store = InMemoryStore()
     big_chunk_retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,
-        store=store,
+        docstore=store,
         parentsplitter=parentsplitter,
         childsplitter=childsplitter,
         search_kwargs={'k': 3}
