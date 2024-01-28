@@ -127,7 +127,7 @@ if __name__ == '__main__':
             "Temperaturregler:",
             0.0, 1.0,
             value=0.1,
-            key="temp_slider",
+            key="temperature_slider",
         )
 
     # Define a custom prompt for the llm to use
