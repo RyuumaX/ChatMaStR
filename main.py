@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import ConversationalRetrievalChain, RetrievalQA
 from langchain.retrievers import ParentDocumentRetriever
 from langchain.storage import InMemoryStore
 from langchain_community.document_loaders import PyPDFDirectoryLoader, WebBaseLoader
@@ -13,6 +13,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.vectorstores.chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.prompts.prompt import PromptTemplate
 import bs4
 
 
@@ -99,6 +100,19 @@ def load_knowledgebase(path):
     return docs
 
 
+B_INST, E_INST = "[INST]", "[/INST]"
+B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
+DEFAULT_SYSTEM_PROMPT = """\
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content.
+Please ensure that your responses are socially unbiased and positive in nature.
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+
+def get_prompt(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT ):
+    SYSTEM_PROMPT = B_SYS + new_system_prompt + E_SYS
+    prompt_template =  B_INST + SYSTEM_PROMPT + instruction + E_INST
+    return prompt_template
+
+
 if __name__ == '__main__':
     # Streamlit Configuration Stuff
     st.set_page_config(
@@ -116,13 +130,29 @@ if __name__ == '__main__':
             key="temp_slider",
         )
 
-    #RAG Retrieval Step - Langchain Version
+    # Define a custom prompt for the llm to use
+    sys_prompt = """Du bist ein hilfreicher, respektvoller und ehrlicher Assistent. Antworte immer so hilfreich wie möglich und nutze dafür den gegebenen Kontext.
+    Deine Antworten sollten ausschließlich die Frage beantworten und keinen Text nach der Antwort beinhalten.
+    Wenn eine Frage nicht anhand des Kontexts beantwortbar ist, sage dies und gib keine falschen Informationen.
+    """
+    instruction = """KONTEXT:/n/n {context}/n
+    Frage: {question}"""
+
+    prompt_template = get_prompt(instruction, sys_prompt)
+    final_prompt = PromptTemplate(
+        template=prompt_template,
+        input_variables=["context", "question"]
+    )
+    chain_type_kwargs = {"prompt": final_prompt}
+
     # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
     retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
-    qa_chain = ConversationalRetrievalChain.from_llm(
-        llm, chain_type="stuff", retriever=retriever, memory=memory,
+
+    # final chain assembly
+    qa_chain = RetrievalQA.from_chain_type(
+        llm, chain_type="stuff", chain_type_kwargs=chain_type_kwargs, retriever=retriever, memory=memory,
     )
 
 
