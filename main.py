@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     with st.sidebar:
         temperature_slider = st.slider(
-            "Temperaturregler:",
+            "Temperatur:",
             0.0, 1.0,
             value=0.1,
             key="temperature_slider",
