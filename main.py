@@ -1,6 +1,7 @@
+import langchain_community.vectorstores.starrocks
 import streamlit as st
 import os
-
+from langchain.globals import set_debug
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
 from langchain.retrievers import ParentDocumentRetriever
 from langchain.storage import InMemoryStore
@@ -15,7 +16,6 @@ from langchain_community.vectorstores.chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.prompts.prompt import PromptTemplate
 import bs4
-
 
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container: st.delta_generator.DeltaGenerator, initial_text: str = ""):
@@ -62,15 +62,15 @@ def configure_retriever():
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)
 
-    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
-    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=80)
+    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
+    childsplitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=80)
     store = InMemoryStore()
     big_chunk_retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,
         docstore=store,
         parent_splitter=parentsplitter,
         child_splitter=childsplitter,
-        search_kwargs={'k': 3}
+        search_kwargs={'k': 10}
     )
     big_chunk_retriever.add_documents(knowledgebase)
 
@@ -114,6 +114,7 @@ def get_prompt(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT ):
 
 
 if __name__ == '__main__':
+    set_debug(True)
     # Streamlit Configuration Stuff
     st.set_page_config(
         page_title="Lokales LLM des MaStR (Experimental)",
@@ -151,6 +152,7 @@ if __name__ == '__main__':
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
 
     # final chain assembly
+    conv_chain = ConversationalRetrievalChain.from_llm(llm, chain_type="stuff", combine_docs_chain_kwargs=chain_type_kwargs, retriever=retriever, memory=memory,)
     qa_chain = RetrievalQA.from_chain_type(
         llm, chain_type="stuff", chain_type_kwargs=chain_type_kwargs, retriever=retriever, memory=memory,
     )
@@ -160,18 +162,18 @@ if __name__ == '__main__':
     if "messages" not in st.session_state:
         st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
 
-    for msg in st.session_state.messages:
+    for msg in st.session_state["messages"]:
         #icon = "./assets/regiocom_logo.png" if msg.role=="assistant" else ""
         #st.chat_message(msg.role, avatar=icon).write(msg.content)
         st.chat_message(msg.role).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        st.session_state.messages.append(ChatMessage(role="user", content=query))
+        st.session_state["messages"].append(ChatMessage(role="user", content=query))
         st.chat_message("user").write(query)
 
         with st.chat_message("assistant"):
             stream_handler = StreamHandler(st.empty())
             retrieval_handler = PrintRetrievalHandler(st.container())
             #finally, run the chain, which invokes the llm-chatcompletion under the hood
-            response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-            st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+            response = conv_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+            st.session_state["messages"].append(ChatMessage(role="assistant", content=response))
