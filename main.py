@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 
+from langchain.globals import set_debug
 from langchain.chains import ConversationalRetrievalChain
 from langchain_openai.chat_models import ChatOpenAI
 from langchain.schema import ChatMessage
@@ -58,7 +59,7 @@ def configure_retriever():
 
 
 if __name__ == '__main__':
-
+    set_debug(True)
     # Streamlit Configuration Stuff
     st.set_page_config(
         page_title="MaStR Chat-Assistent",
