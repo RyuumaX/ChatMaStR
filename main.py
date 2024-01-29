@@ -30,6 +30,7 @@ class StreamHandler(BaseCallbackHandler):
             self.run_id_ignore_token = kwargs.get("run_id")
 
     def on_llm_new_token(self, token: str, **kwargs) -> None:
+        print("starting on_llm_new_token")
         if self.run_id_ignore_token == kwargs.get("run_id", False):
             return
         self.text += token
@@ -71,7 +72,7 @@ def configure_retriever():
         docstore=store,
         parent_splitter=parentsplitter,
         child_splitter=childsplitter,
-        search_kwargs={'k': 10}
+        search_kwargs={'k': 5}
     )
     big_chunk_retriever.add_documents(knowledgebase)
 
