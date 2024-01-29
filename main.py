@@ -17,6 +17,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.prompts.prompt import PromptTemplate
 import bs4
 
+
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container: st.delta_generator.DeltaGenerator, initial_text: str = ""):
         self.container = container
@@ -56,8 +57,8 @@ def configure_retriever():
     knowledgebase = load_knowledgebase(path="./KnowledgeBase/")
     embedding = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2",
-        #temporarily disabled
-        #model_kwargs={'device': 'cuda:1'}
+        # temporarily disabled
+        # model_kwargs={'device': 'cuda:1'}
     )
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)
@@ -74,7 +75,7 @@ def configure_retriever():
     )
     big_chunk_retriever.add_documents(knowledgebase)
 
-    #retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5})
+    # retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5})
 
     return big_chunk_retriever
 
@@ -107,9 +108,10 @@ You are a helpful, respectful and honest assistant. Always answer as helpfully a
 Please ensure that your responses are socially unbiased and positive in nature.
 If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
 
-def get_prompt(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT ):
+
+def get_prompt(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):
     SYSTEM_PROMPT = B_SYS + new_system_prompt + E_SYS
-    prompt_template =  B_INST + SYSTEM_PROMPT + instruction + E_INST
+    prompt_template = B_INST + SYSTEM_PROMPT + instruction + E_INST
     return prompt_template
 
 
@@ -152,19 +154,23 @@ if __name__ == '__main__':
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
 
     # final chain assembly
-    conv_chain = ConversationalRetrievalChain.from_llm(llm, chain_type="stuff", combine_docs_chain_kwargs=chain_type_kwargs, retriever=retriever, memory=memory,)
+    conv_chain = ConversationalRetrievalChain.from_llm(llm,
+                                                       chain_type="stuff",
+                                                       combine_docs_chain_kwargs=chain_type_kwargs,
+                                                       retriever=retriever,
+                                                       memory=memory, )
     qa_chain = RetrievalQA.from_chain_type(
         llm, chain_type="stuff", chain_type_kwargs=chain_type_kwargs, retriever=retriever, memory=memory,
+
     )
 
-
-    #streamlit.session_state is streamlits global dictionary for savong session state
+    # streamlit.session_state is streamlits global dictionary for savong session state
     if "messages" not in st.session_state:
         st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
 
     for msg in st.session_state["messages"]:
-        #icon = "./assets/regiocom_logo.png" if msg.role=="assistant" else ""
-        #st.chat_message(msg.role, avatar=icon).write(msg.content)
+        # icon = "./assets/regiocom_logo.png" if msg.role=="assistant" else ""
+        # st.chat_message(msg.role, avatar=icon).write(msg.content)
         st.chat_message(msg.role).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
@@ -174,6 +180,7 @@ if __name__ == '__main__':
         with st.chat_message("assistant"):
             stream_handler = StreamHandler(st.empty())
             retrieval_handler = PrintRetrievalHandler(st.container())
-            #finally, run the chain, which invokes the llm-chatcompletion under the hood
-            response = conv_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+            # finally, run the chain, which invokes the llm-chatcompletion under the hood
+
+            response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
             st.session_state["messages"].append(ChatMessage(role="assistant", content=response))
