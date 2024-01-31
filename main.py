@@ -15,6 +15,7 @@ from langchain_community.chat_message_histories import StreamlitChatMessageHisto
 from langchain_community.vectorstores.chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.prompts.prompt import PromptTemplate
+from trulens_eval import Feedback, TruChain, feedback, Select
 import bs4
 
 
