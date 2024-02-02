@@ -106,9 +106,11 @@ def load_knowledgebase(path):
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 DEFAULT_SYSTEM_PROMPT = """\
-You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content.
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.
+Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content.
 Please ensure that your responses are socially unbiased and positive in nature.
-If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not
+correct. If you don't know the answer to a question, please don't share false information."""
 
 
 def get_prompt(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):
@@ -136,7 +138,8 @@ if __name__ == '__main__':
         )
 
     # Define a custom prompt for the llm to use
-    sys_prompt = """Du bist ein hilfreicher, respektvoller und ehrlicher Assistent. Antworte immer so hilfreich wie möglich und nutze dafür den gegebenen Kontext.
+    sys_prompt = """Du bist ein hilfreicher, respektvoller und ehrlicher Assistent.
+    Antworte immer so hilfreich wie möglich und nutze dafür den gegebenen Kontext.
     Deine Antworten sollten ausschließlich die Frage beantworten und keinen Text nach der Antwort beinhalten.
     Wenn eine Frage nicht anhand des Kontexts beantwortbar ist, sage dies und gib keine falschen Informationen.
     """
@@ -148,10 +151,10 @@ if __name__ == '__main__':
         template=prompt_template,
         input_variables=["context", "question"]
     )
-    chain_type_kwargs = {"prompt": final_prompt}
 
     # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
+    chain_type_kwargs = {"prompt": final_prompt}
     retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
 
