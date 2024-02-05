@@ -7,6 +7,7 @@ from langchain.retrievers import ParentDocumentRetriever
 from langchain.storage import InMemoryStore
 from langchain_community.document_loaders import PyPDFDirectoryLoader, WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.output_parsers import StrOutputParser
 from langchain_openai.chat_models import ChatOpenAI
 from langchain.schema import ChatMessage
 from langchain.callbacks.base import BaseCallbackHandler
@@ -15,7 +16,9 @@ from langchain_community.chat_message_histories import StreamlitChatMessageHisto
 from langchain_community.vectorstores.chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.prompts.prompt import PromptTemplate
+from langchain.schema.runnable import RunnablePassthrough
 from trulens_eval import Feedback, TruChain, feedback, Select
+from langchain_core.messages import get_buffer_string
 import bs4
 
 
@@ -113,9 +116,9 @@ If a question does not make any sense, or is not factually coherent, explain why
 correct. If you don't know the answer to a question, please don't share false information."""
 
 
-def get_prompt(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):
-    SYSTEM_PROMPT = B_SYS + new_system_prompt + E_SYS
-    prompt_template = B_INST + SYSTEM_PROMPT + instruction + E_INST
+def add_prompt_templates_together(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):
+    system_prompt = B_SYS + new_system_prompt + E_SYS
+    prompt_template = B_INST + system_prompt + instruction + E_INST
     return prompt_template
 
 
@@ -143,20 +146,22 @@ if __name__ == '__main__':
     Deine Antworten sollten ausschließlich die Frage beantworten und keinen Text nach der Antwort beinhalten.
     Wenn eine Frage nicht anhand des Kontexts beantwortbar ist, sage dies und gib keine falschen Informationen.
     """
-    instruction = """KONTEXT:/n/n {context}/n
+    instruction_prompt_template = """KONTEXT:/n/n {context}/n
     Frage: {question}"""
 
-    prompt_template = get_prompt(instruction, sys_prompt)
-    final_prompt = PromptTemplate(
+    prompt_template = add_prompt_templates_together(instruction_prompt_template, sys_prompt)
+    prompt = PromptTemplate(
         template=prompt_template,
         input_variables=["context", "question"]
     )
 
     # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state['temperature_slider'])
-    chain_type_kwargs = {"prompt": final_prompt}
+    chain_type_kwargs = {"prompt": prompt}
     retriever = configure_retriever()
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
+    memory_lcel = ConversationBufferMemory(return_messages=True, output_key="answer", input_key="question")
+
 
     # final chain assembly
     conv_chain = ConversationalRetrievalChain.from_llm(llm,
@@ -167,6 +172,13 @@ if __name__ == '__main__':
     qa_chain = RetrievalQA.from_chain_type(
         llm, chain_type="stuff", chain_type_kwargs=chain_type_kwargs, retriever=retriever, memory=memory,
 
+    )
+
+    rag_chain = (
+            {"context": retriever, "question": RunnablePassthrough()}
+            | prompt
+            | llm
+            | StrOutputParser()
     )
 
     # streamlit.session_state is streamlits global dictionary for savong session state
