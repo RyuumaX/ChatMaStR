@@ -17,8 +17,8 @@ class StreamHandler(BaseCallbackHandler):
 
     def on_llm_new_token(self, token: str, **kwargs) -> None:
         print("streamhandler: onLLMnewToken called." + token)
-        if self.run_id_ignore_token == kwargs.get("run_id", False):
-            return
+        #if self.run_id_ignore_token == kwargs.get("run_id", False):
+        #    return
         self.text += token
         self.container.markdown(self.text)
 

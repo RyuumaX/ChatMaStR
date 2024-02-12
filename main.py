@@ -88,7 +88,7 @@ def combine_documents(docs,
 
 
 if __name__ == '__main__':
-    set_debug(True)
+    #set_debug(True)
     # Streamlit Configuration Stuff
     st.set_page_config(page_title="Lokales LLM des MaStR (Experimental)",
                        page_icon="🤖"
@@ -181,7 +181,12 @@ if __name__ == '__main__':
             retrieval_handler = PrintRetrievalHandler(st.container())
             # finally, run the chain, which invokes the llm-chatcompletion under the hood
 
+            #response = qa_chain.invoke({"query": query}, {"callbacks":[retrieval_handler, stream_handler]})
             response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+            print(response)
             #lcel_reponse = lcel_qa_chain.invoke(chain_input, config={"callbacks": [retrieval_handler, stream_handler]})
-            st.session_state["messages"].append(ChatMessage(role="assistant", content=response))
+            if "messages" not in st.session_state:
+                st.session_state["messages"] = [ChatMessage(role="assistant", content=response)]
+            else:
+                st.session_state["messages"].append(ChatMessage(role="assistant", content=response))
             #st.session_state["messages"].append(ChatMessage(role="assistant", content=lcel_reponse))
