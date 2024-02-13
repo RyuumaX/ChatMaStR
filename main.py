@@ -2,7 +2,7 @@ import streamlit as st
 from langchain.globals import set_debug
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
 from langchain.retrievers import ParentDocumentRetriever
-from langchain.storage import InMemoryStore
+from langchain.storage import InMemoryStore, LocalFileStore
 from langchain_community.document_loaders import PyPDFDirectoryLoader, WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.messages import get_buffer_string
@@ -17,6 +17,7 @@ from langchain_community.vectorstores.chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
+from langchain.storage._lc_store import create_kv_docstore
 from operator import itemgetter
 import bs4
 
@@ -41,10 +42,11 @@ def configure_retriever():
     )
     # load persisted vectorstore
     vectorstore = Chroma(persist_directory="./KnowledgeBase/", embedding_function=embedding)
-
+    fs = LocalFileStore("./KnowledgeBase/store_location")
+    store = create_kv_docstore(fs)
     parentsplitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
     childsplitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=80)
-    store = InMemoryStore()
+    #store = InMemoryStore()
     big_chunk_retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,
         docstore=store,
