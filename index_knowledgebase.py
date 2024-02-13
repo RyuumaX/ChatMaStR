@@ -45,7 +45,7 @@ def create_embeddings_from_docs(docs, save_path):
     embeddings = embedding_model.embed_documents([split.page_content for split in splits])
     print("==========first embedding:=========")
     print(embeddings[0])
-    vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_model, persist_directory=save_path)
+    vectorstore = Chroma.from_documents(collection_name="small_chunks", documents=splits, embedding=embedding_model, persist_directory=save_path)
     docs = vectorstore.similarity_search(query="Wie registriere ich mein Balkonkraftwerk?")
     print(docs[0].page_content)
 
