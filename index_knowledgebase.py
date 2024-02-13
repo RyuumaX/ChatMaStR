@@ -37,11 +37,12 @@ def create_embeddings_from_docs(docs, save_path):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=80, add_start_index=True)
     splits = text_splitter.split_documents(docs)
     print("==========first 3 splits==========\n")
-    print(splits[:3], "\n")
+    for split in splits[:3]:
+        print(split, "\n")
     embedding_model = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2"
     )
-    embeddings = embedding_model.embed_documents([splits[0].page_content])
+    embeddings = embedding_model.embed_documents([split.page_content for split in splits])
     print("==========first embedding:=========")
     print(embeddings[0])
     vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_model, persist_directory=save_path)
