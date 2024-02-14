@@ -184,11 +184,10 @@ if __name__ == '__main__':
             # finally, run the chain, which invokes the llm-chatcompletion under the hood
 
             #response = qa_chain.invoke({"query": query}, {"callbacks":[retrieval_handler, stream_handler]})
-            response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+            #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+            response = lcel_qa_chain.invoke(chain_input, config={"callbacks": [retrieval_handler, stream_handler]})
             print(response)
-            #lcel_reponse = lcel_qa_chain.invoke(chain_input, config={"callbacks": [retrieval_handler, stream_handler]})
             if "messages" not in st.session_state:
                 st.session_state["messages"] = [ChatMessage(role="assistant", content=response)]
             else:
                 st.session_state["messages"].append(ChatMessage(role="assistant", content=response))
-            #st.session_state["messages"].append(ChatMessage(role="assistant", content=lcel_reponse))
