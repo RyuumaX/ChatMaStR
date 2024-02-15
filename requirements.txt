@@ -11,3 +11,4 @@ chromadb==0.4.22
 tiktoken==0.5.2
 anyio==4.0.0
 pypdf==3.17.4
+beautifulsoup4==4.12.3
