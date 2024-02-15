@@ -11,6 +11,7 @@ from langchain_community.chat_message_histories import StreamlitChatMessageHisto
 from langchain_community.document_loaders import PyPDFDirectoryLoader, WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import format_document
 from langchain_openai.chat_models import ChatOpenAI
@@ -118,7 +119,11 @@ if __name__ == '__main__':
         st.header("MaStR Chat-Assistent")
 
     stream_handler = StreamHandler(st.empty())
-    st_chat_messages = StreamlitChatMessageHistory()
+    # StreamlitChatMessageHistory() handles adding Messages (AI, Human etc.) to the streamlit session state dictionary.
+    # So there is no need to handle that on our own, e.g. no need to do something like
+    # st.session_state["messages"].append(msg).
+    st_chat_messages = StreamlitChatMessageHistory(key="message_history")
+    print(st_chat_messages)
 
     prompt_template = add_prompt_templates_together(INSTRUCTION_PROMPT_TEMPLATE, SYS_PROMPT)
     prompt = PromptTemplate(template=prompt_template,
@@ -147,29 +152,28 @@ if __name__ == '__main__':
 
 
     # streamlit.session_state is streamlits global dictionary for saving session state
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
+    #if st.session_state["message_history"]
+    if len(st_chat_messages.messages) == 0:
+        st_chat_messages.add_ai_message(AIMessage(content="Wie kann ich helfen?"))
+    pretty(st.session_state)
 
-    for msg in st.session_state.messages:
-        st.chat_message(msg.role).write(msg.content)
+    for msg in st.session_state["message_history"]:
+        st.chat_message(msg.type).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        st.session_state["messages"].append(ChatMessage(role="user", content=query))
+        #st.session_state["message_history"].append(HumanMessage(content=query))
         st.chat_message("user").write(query)
 
-        with st.chat_message("assistant"):
+        with st.chat_message("ai"):
             stream_handler = StreamHandler(st.empty())
             retrieval_handler = PrintRetrievalHandler(st.container())
             # finally, run the chain, which invokes the llm-chatcompletion under the hood
 
-            response = qa_chain.invoke({"query": query}, {"callbacks":[retrieval_handler, stream_handler]})
+            response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
             #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
             #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
             print("=====RESPONSE=====")
             pretty(response, indent=2)
-            if "messages" not in st.session_state:
-                st.session_state["messages"] = [ChatMessage(role="assistant", content=response)]
-            else:
-                st.session_state["messages"].append(ChatMessage(role="assistant", content=response["result"]))
-                print("=====STREAMLIT SESSION DICT=====")
-                #pretty(st.session_state, indent=2)
+            #st.session_state["message_history"].append(AIMessage(content=response["result"]))
+            print("=====STREAMLIT SESSION DICT=====")
+            pretty(st.session_state, indent=2)
