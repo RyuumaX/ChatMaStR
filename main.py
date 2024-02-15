@@ -1,30 +1,23 @@
+import bs4
 import streamlit as st
-from langchain.globals import set_debug
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
+from langchain.memory import ConversationBufferMemory
 from langchain.retrievers import ParentDocumentRetriever
-from langchain.storage import InMemoryStore, LocalFileStore
+from langchain.schema import ChatMessage
+from langchain.storage import LocalFileStore
+from langchain.storage._lc_store import create_kv_docstore
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.document_loaders import PyPDFDirectoryLoader, WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_core.messages import get_buffer_string
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import format_document
-from langchain_core.runnables import RunnableLambda
-from langchain_openai.chat_models import ChatOpenAI
-from langchain.schema import ChatMessage
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.memory import ConversationBufferMemory
-from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.vectorstores.chroma import Chroma
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
-from langchain.schema.runnable import RunnablePassthrough
-from langchain.storage._lc_store import create_kv_docstore
-from operator import itemgetter
-import bs4
+from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import format_document
+from langchain_openai.chat_models import ChatOpenAI
 
 from callback_handlers import StreamHandler, PrintRetrievalHandler
 from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS, SYS_PROMPT, \
-    INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
+    INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE
 
 
 @st.cache_resource(ttl="1h")
