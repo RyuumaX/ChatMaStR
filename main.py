@@ -14,6 +14,7 @@ from langchain_community.vectorstores.chroma import Chroma
 from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import format_document
 from langchain_openai.chat_models import ChatOpenAI
+import json
 
 from callback_handlers import StreamHandler, PrintRetrievalHandler
 from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS, SYS_PROMPT, \
@@ -81,6 +82,15 @@ def combine_documents(docs,
                       ):
     doc_strings = [format_document(doc, document_prompt) for doc in docs]
     return document_separator.join(doc_strings)
+
+
+def pretty(d, indent=0):
+    for key, value in d.items():
+        print('\t' * indent + str(key))
+        if isinstance(value, dict):
+            pretty(value, indent+1)
+        else:
+            print('\t' * (indent+1) + str(value))
 
 
 if __name__ == '__main__':
@@ -153,9 +163,13 @@ if __name__ == '__main__':
             # finally, run the chain, which invokes the llm-chatcompletion under the hood
 
             response = qa_chain.invoke({"query": query}, {"callbacks":[retrieval_handler, stream_handler]})
+            #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
             #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-            print(response)
+            print("=====RESPONSE=====")
+            pretty(response, indent=2)
             if "messages" not in st.session_state:
                 st.session_state["messages"] = [ChatMessage(role="assistant", content=response)]
             else:
-                st.session_state["messages"].append(ChatMessage(role="assistant", content=response))
+                st.session_state["messages"].append(ChatMessage(role="assistant", content=response["result"]))
+                print("=====STREAMLIT SESSION DICT=====")
+                #pretty(st.session_state, indent=2)
