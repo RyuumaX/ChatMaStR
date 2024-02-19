@@ -26,7 +26,7 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
 
 
-@st.cache_resource(ttl="1h")
+#@st.cache_resource(ttl="1h")
 def configure_retriever():
     knowledgebase = get_pdf_docs_from_path(path="./KnowledgeBase/")
     knowledgebase.extend(get_web_docs_from_urls([
@@ -44,8 +44,8 @@ def configure_retriever():
     vectorstore = Chroma(collection_name="small_chunks", persist_directory="./KnowledgeBase/", embedding_function=embedding)
     fs = LocalFileStore("./KnowledgeBase/store_location")
     store = create_kv_docstore(fs)
-    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
-    childsplitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=80)
+    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200)
+    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100)
     #store = InMemoryStore()
     big_chunk_retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,
