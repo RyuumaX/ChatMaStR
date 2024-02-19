@@ -37,11 +37,11 @@ def configure_retriever():
         # model_kwargs={'device': 'cuda:1'}
     )
     # load persisted vectorstore
-    vectorstore = Chroma(collection_name="small_chunks", persist_directory="./KnowledgeBase/", embedding_function=embedding)
+    vectorstore = Chroma(collection_name="small_chunks", persist_directory="./KnowledgeBase/chromadb_prod", embedding_function=embedding)
     fs = LocalFileStore("./KnowledgeBase/store_location")
     store = create_kv_docstore(fs)
-    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
-    childsplitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=80)
+    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200)
+    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100)
     #store = InMemoryStore()
     big_chunk_retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,
