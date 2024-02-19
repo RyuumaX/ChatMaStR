@@ -53,13 +53,14 @@ def configure_retriever():
     big_chunk_retriever.add_documents(knowledgebase)
     return big_chunk_retriever
 
-
+@st.cache_data
 def get_pdf_docs_from_path(path):
     pdf_loader = PyPDFDirectoryLoader(path)
     pdf_docs = pdf_loader.load()
     return pdf_docs
 
 
+@st.cache_data
 def get_web_docs_from_urls(urls):
     web_loader = WebBaseLoader(
         web_paths=urls,
