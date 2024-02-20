@@ -22,7 +22,7 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE
 
 
-@st.cache_resource(ttl="1h")
+@st.cache_resource(ttl="4h")
 def configure_retriever():
     knowledgebase = get_pdf_docs_from_path(path="./KnowledgeBase/")
     knowledgebase.extend(get_web_docs_from_urls([
