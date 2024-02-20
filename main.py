@@ -1,3 +1,7 @@
+import os.path
+import pathlib
+import shutil
+
 import bs4
 import streamlit as st
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
@@ -162,19 +166,23 @@ if __name__ == '__main__':
         st.chat_message(msg.type).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        #st.session_state["message_history"].append(HumanMessage(content=query))
-        st.chat_message("user").write(query)
+        if query == "killdb":
+            if os.path.isfile("./KnowledgeBase/chromadb_prod/chroma.sqlite3"):
+                os.remove("./KnowledgeBase/chromadb_prod/chroma.sqlite3")
+        else:
+            #st.session_state["message_history"].append(HumanMessage(content=query))
+            st.chat_message("user").write(query)
 
-        with st.chat_message("ai"):
-            stream_handler = StreamHandler(st.empty())
-            retrieval_handler = PrintRetrievalHandler(st.container())
-            # finally, run the chain, which invokes the llm-chatcompletion under the hood
+            with st.chat_message("ai"):
+                stream_handler = StreamHandler(st.empty())
+                retrieval_handler = PrintRetrievalHandler(st.container())
+                # finally, run the chain, which invokes the llm-chatcompletion under the hood
 
-            response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
-            #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
-            #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-            print("=====RESPONSE=====")
-            pretty(response, indent=2)
-            #st.session_state["message_history"].append(AIMessage(content=response["result"]))
-            print("=====STREAMLIT SESSION DICT=====")
-            pretty(st.session_state, indent=2)
+                response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
+                #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
+                #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+                print("=====RESPONSE=====")
+                pretty(response, indent=2)
+                #st.session_state["message_history"].append(AIMessage(content=response["result"]))
+                print("=====STREAMLIT SESSION DICT=====")
+                pretty(st.session_state, indent=2)
