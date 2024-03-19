@@ -101,10 +101,10 @@ if __name__ == '__main__':
     #set_debug(True)
     # Streamlit Configuration Stuff
     st.set_page_config(
-        page_title="Lokales LLM des MaStR (Experimental)",
+        page_title="EWI-Chatbot (Experimental)",
         page_icon="🤖"
     )
-    st.header("Lokales LLM des MaStR (Experimental)")
+    st.header("EWI-Chatbot (Experimental)")
 
     with st.sidebar:
         temperature_slider = st.slider("Temperaturregler:",
