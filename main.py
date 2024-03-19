@@ -1,32 +1,34 @@
+import os.path
+import pathlib
+import shutil
+
+import bs4
 import streamlit as st
 from langchain.globals import set_debug
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
+from langchain.memory import ConversationBufferMemory
 from langchain.retrievers import ParentDocumentRetriever
-from langchain.storage import InMemoryStore, LocalFileStore
+from langchain.schema import ChatMessage
+from langchain.storage import LocalFileStore
+from langchain.storage._lc_store import create_kv_docstore
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.document_loaders import PyPDFDirectoryLoader, WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_core.messages import get_buffer_string
-from langchain_core.output_parsers import StrOutputParser
+from langchain_community.vectorstores.chroma import Chroma
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import format_document
 from langchain_core.runnables import RunnableLambda
 from langchain_openai.chat_models import ChatOpenAI
-from langchain.schema import ChatMessage
-from langchain.memory import ConversationBufferMemory
-from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from langchain_community.vectorstores.chroma import Chroma
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
-from langchain.schema.runnable import RunnablePassthrough
-from langchain.storage._lc_store import create_kv_docstore
-from operator import itemgetter
-import bs4
+import json
 
 from callback_handlers import StreamHandler, PrintRetrievalHandler
 from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS, SYS_PROMPT, \
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
 
 
-@st.cache_resource(ttl="1h")
+@st.cache_resource(ttl="4h")
 def configure_retriever():
     knowledgebase = get_pdf_docs_from_path(path="./KnowledgeBase/")
     knowledgebase.extend(get_web_docs_from_urls([
@@ -57,13 +59,14 @@ def configure_retriever():
     big_chunk_retriever.add_documents(knowledgebase)
     return big_chunk_retriever
 
-
+@st.cache_data
 def get_pdf_docs_from_path(path):
     pdf_loader = PyPDFDirectoryLoader(path)
     pdf_docs = pdf_loader.load()
     return pdf_docs
 
 
+@st.cache_data
 def get_web_docs_from_urls(urls):
     web_loader = WebBaseLoader(
         web_paths=urls,
@@ -89,15 +92,24 @@ def combine_documents(docs,
     return document_separator.join(doc_strings)
 
 
+def pretty(d, indent=0):
+    for key, value in d.items():
+        print('\t' * indent + str(key))
+        if isinstance(value, dict):
+            pretty(value, indent+1)
+        else:
+            print('\t' * (indent+1) + str(value))
+
+
 if __name__ == '__main__':
     #set_debug(True)
     # Streamlit Configuration Stuff
-    st.set_page_config(page_title="Lokales LLM des MaStR (Experimental)",
-                       page_icon="🤖"
-                       )
+    st.set_page_config(
+        page_title="Lokales LLM des MaStR (Experimental)",
+        page_icon="🤖"
+    )
     st.header("Lokales LLM des MaStR (Experimental)")
-    stream_handler = StreamHandler(st.empty())
-    st_chat_messages = StreamlitChatMessageHistory()
+
     with st.sidebar:
         temperature_slider = st.slider("Temperaturregler:",
                                        0.0, 1.0,
@@ -105,13 +117,20 @@ if __name__ == '__main__':
                                        key="temperature_slider",
                                        )
 
+    stream_handler = StreamHandler(st.empty())
+    # StreamlitChatMessageHistory() handles adding Messages (AI, Human etc.) to the streamlit session state dictionary.
+    # So there is no need to handle that on our own, e.g. no need to do something like
+    # st.session_state["messages"].append(msg).
+    st_chat_messages = StreamlitChatMessageHistory(key="message_history")
+    print(st_chat_messages)
+
     prompt_template = add_prompt_templates_together(INSTRUCTION_PROMPT_TEMPLATE, SYS_PROMPT)
     prompt = PromptTemplate(template=prompt_template,
                             input_variables=["context", "question"]
                             )
 
     # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=0.1)
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
     retriever = configure_retriever()
     chain_type_kwargs = {"prompt": prompt}
     memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
@@ -165,29 +184,32 @@ if __name__ == '__main__':
     lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
 
     # streamlit.session_state is streamlits global dictionary for saving session state
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [ChatMessage(role="assistant", content="Wie kann ich helfen?")]
+    #if st.session_state["message_history"]
+    if len(st_chat_messages.messages) == 0:
+        st_chat_messages.add_ai_message(AIMessage(content="Wie kann ich helfen?"))
+    pretty(st.session_state)
 
-    for msg in st.session_state["messages"]:
-        # icon = "./assets/regiocom_logo.png" if msg.role=="assistant" else ""
-        # st.chat_message(msg.role, avatar=icon).write(msg.content)
-        st.chat_message(msg.role).write(msg.content)
+    for msg in st.session_state["message_history"]:
+        st.chat_message(msg.type).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        st.session_state["messages"].append(ChatMessage(role="user", content=query))
-        st.chat_message("user").write(query)
-        chain_input = {"question": query}
+        if query == "killdb":
+            if os.path.isfile("./KnowledgeBase/chromadb_experimental/chroma.sqlite3"):
+                os.remove("./KnowledgeBase/chromadb_experimental/chroma.sqlite3")
+        else:
+            #st.session_state["message_history"].append(HumanMessage(content=query))
+            st.chat_message("user").write(query)
 
-        with st.chat_message("assistant"):
-            stream_handler = StreamHandler(st.empty())
-            retrieval_handler = PrintRetrievalHandler(st.container())
-            # finally, run the chain, which invokes the llm-chatcompletion under the hood
+            with st.chat_message("ai"):
+                stream_handler = StreamHandler(st.empty())
+                retrieval_handler = PrintRetrievalHandler(st.container())
+                # finally, run the chain, which invokes the llm-chatcompletion under the hood
 
-            #response = qa_chain.invoke({"query": query}, {"callbacks":[retrieval_handler, stream_handler]})
-            #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-            response = lcel_qa_chain.invoke(chain_input, config={"callbacks": [retrieval_handler, stream_handler]})
-            print(response)
-            if "messages" not in st.session_state:
-                st.session_state["messages"] = [ChatMessage(role="assistant", content=response)]
-            else:
-                st.session_state["messages"].append(ChatMessage(role="assistant", content=response))
+                response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
+                #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
+                #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+                print("=====RESPONSE=====")
+                pretty(response, indent=2)
+                #st.session_state["message_history"].append(AIMessage(content=response["result"]))
+                print("=====STREAMLIT SESSION DICT=====")
+                pretty(st.session_state, indent=2)
