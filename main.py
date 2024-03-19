@@ -1,3 +1,7 @@
+import os.path
+import pathlib
+import shutil
+
 import bs4
 import streamlit as st
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
@@ -22,7 +26,7 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE
 
 
-@st.cache_resource(ttl="1h")
+@st.cache_resource(ttl="4h")
 def configure_retriever():
     knowledgebase = get_pdf_docs_from_path(path="./KnowledgeBase/")
     knowledgebase.extend(get_web_docs_from_urls([
@@ -37,11 +41,11 @@ def configure_retriever():
         # model_kwargs={'device': 'cuda:1'}
     )
     # load persisted vectorstore
-    vectorstore = Chroma(collection_name="small_chunks", persist_directory="./KnowledgeBase/", embedding_function=embedding)
+    vectorstore = Chroma(collection_name="small_chunks", persist_directory="./KnowledgeBase/chromadb_prod", embedding_function=embedding)
     fs = LocalFileStore("./KnowledgeBase/store_location")
     store = create_kv_docstore(fs)
     parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
-    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100)
+    childsplitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=100)
     #store = InMemoryStore()
     big_chunk_retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,
@@ -53,13 +57,14 @@ def configure_retriever():
     big_chunk_retriever.add_documents(knowledgebase)
     return big_chunk_retriever
 
-
+@st.cache_data
 def get_pdf_docs_from_path(path):
     pdf_loader = PyPDFDirectoryLoader(path)
     pdf_docs = pdf_loader.load()
     return pdf_docs
 
 
+@st.cache_data
 def get_web_docs_from_urls(urls):
     web_loader = WebBaseLoader(
         web_paths=urls,
@@ -161,19 +166,23 @@ if __name__ == '__main__':
         st.chat_message(msg.type).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        #st.session_state["message_history"].append(HumanMessage(content=query))
-        st.chat_message("user").write(query)
+        if query == "killdb":
+            if os.path.isfile("./KnowledgeBase/chromadb_prod/chroma.sqlite3"):
+                os.remove("./KnowledgeBase/chromadb_prod/chroma.sqlite3")
+        else:
+            #st.session_state["message_history"].append(HumanMessage(content=query))
+            st.chat_message("user").write(query)
 
-        with st.chat_message("ai"):
-            stream_handler = StreamHandler(st.empty())
-            retrieval_handler = PrintRetrievalHandler(st.container())
-            # finally, run the chain, which invokes the llm-chatcompletion under the hood
+            with st.chat_message("ai"):
+                stream_handler = StreamHandler(st.empty())
+                retrieval_handler = PrintRetrievalHandler(st.container())
+                # finally, run the chain, which invokes the llm-chatcompletion under the hood
 
-            response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
-            #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
-            #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-            print("=====RESPONSE=====")
-            pretty(response, indent=2)
-            #st.session_state["message_history"].append(AIMessage(content=response["result"]))
-            print("=====STREAMLIT SESSION DICT=====")
-            pretty(st.session_state, indent=2)
+                response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
+                #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
+                #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+                print("=====RESPONSE=====")
+                pretty(response, indent=2)
+                #st.session_state["message_history"].append(AIMessage(content=response["result"]))
+                print("=====STREAMLIT SESSION DICT=====")
+                pretty(st.session_state, indent=2)
