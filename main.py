@@ -42,8 +42,12 @@ def configure_retriever():
     vectorstore = Chroma(collection_name="small_chunks_exp", persist_directory="./KnowledgeBase/chromadb_experimental", embedding_function=embedding)
     fs = LocalFileStore("./KnowledgeBase/store_location_exp")
     store = create_kv_docstore(fs)
-    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200)
-    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100)
+    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200,
+                                                    separators=["\n\n", "\n", "(?<=\. )", " ", ""]
+                                                    )
+    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100,
+                                                   separators=["\n\n", "\n", "(?<=\. )", " ", ""]
+                                                   )
     #store = InMemoryStore()
     big_chunk_retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,
