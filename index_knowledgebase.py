@@ -55,7 +55,7 @@ def create_vectordb_for_texts(texts, save_path):
     embedding_model = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
     )
-    test_embedding = embedding_model.embed_documents(texts[0])
+    test_embedding = embedding_model.embed_documents(texts[0].page_content)
     n = 5
     print(f"==========first embedding ({len(test_embedding[:n])} of {len(test_embedding)} dimensions:=========")
     print(test_embedding[:n], "...")
