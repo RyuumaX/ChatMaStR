@@ -1,6 +1,7 @@
 import os.path
 
 import bs4
+import tqdm
 import streamlit as st
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
 from langchain.memory import ConversationBufferMemory
@@ -24,22 +25,28 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
 
 
-@st.cache_resource(ttl="4h")
-def configure_retriever():
-    knowledgebase = get_pdf_docs_from_path(path="./KnowledgeBase/")
+#TODO: VectorDB nur laden, falls sqlite Datei vorhanden
+def create_vectorstore_for_docs_in(path="./KnowledgeBase/"):
+    knowledgebase = get_pdf_docs_from_path(path)
     knowledgebase.extend(get_web_docs_from_urls([
         "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
         "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendAnlagen.html",
         "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendFristen.html"
     ]))
-
     embedding = HuggingFaceEmbeddings(
-        model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2",
+        model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer",
         # temporarily disabled
         # model_kwargs={'device': 'cuda:1'}
     )
     # load persisted vectorstore
-    vectorstore = Chroma(collection_name="small_chunks_exp", persist_directory="./KnowledgeBase/chromadb_experimental", embedding_function=embedding)
+    vectorstore = Chroma(collection_name="small_chunks_exp", persist_directory="./KnowledgeBase/chromadb_experimental",
+                         embedding_function=embedding)
+
+@st.cache_resource(ttl="4h")
+def configure_retriever():
+
+
+    
     fs = LocalFileStore("./KnowledgeBase/store_location_exp")
     store = create_kv_docstore(fs)
     parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200,
@@ -60,6 +67,8 @@ def configure_retriever():
     return big_chunk_retriever
 
 @st.cache_data
+# TODO: Parsen der Dokumente mit PyPDFLoader statt DirectoryLoader
+# TODO: Parserschleife mit tqdm einen Fortschrittsbalken geben
 def get_pdf_docs_from_path(path):
     pdf_loader = PyPDFDirectoryLoader(path)
     pdf_docs = pdf_loader.load()
@@ -148,7 +157,7 @@ if __name__ == '__main__':
                                            retriever=retriever,
                                            memory=memory
                                            )
-
+    # TODO: Unterschiedliche Memory Arten testen (Window, Summary)
     lcel_memory = ConversationBufferMemory(return_messages=True, output_key="answer", input_key="question")
     loaded_memory = RunnablePassthrough.assign(
         chat_history=RunnableLambda(lcel_memory.load_memory_variables) | itemgetter("history"),
@@ -193,7 +202,7 @@ if __name__ == '__main__':
         st.chat_message(msg.type).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        if query == "killdb":
+        if query == "killdb": #TODO: Killswitch testen
             if os.path.isfile("./KnowledgeBase/chromadb_experimental/chroma.sqlite3"):
                 os.remove("./KnowledgeBase/chromadb_experimental/chroma.sqlite3")
         else:
