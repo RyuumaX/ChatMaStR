@@ -66,7 +66,7 @@ def create_vectordb_for_texts(texts, save_path):
 
 
 def split_texts_into_chunks(texts, chunksize, chunk_overlap=0, splitter="recursive"):
-    print(texts)
+    print(texts[0])
     if splitter == "recursive":
         splitter = RecursiveCharacterTextSplitter(chunk_size=chunksize, chunk_overlap=chunk_overlap,
                                                   separators=["\n\n", "\n", "(?<=\. )", " ", ""]
