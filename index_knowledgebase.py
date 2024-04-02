@@ -41,13 +41,13 @@ def get_web_docs_from_urls(path):
 def load_docs_from_path(path):
     # Read documents
     pdf_docs = get_pdf_docs_from_path(path)
-    print(f"Anzahl Splits von PDF-docs: {len(pdf_docs)}")
+    print(f"Anzahl Seiten von PDF-docs: {len(pdf_docs)}")
     web_docs = get_web_docs_from_urls(path)
-    print(f"Anzahl Splits von Webdocs: {len(web_docs)}")
+    print(f"Anzahl Seiten von Webdocs: {len(web_docs)}")
     all_docs = []
     all_docs.extend(pdf_docs)
     all_docs.extend(web_docs)
-    print(f"Insgesamt {str(len(all_docs))} Chunks/Splits.")
+    print(f"Insgesamt {str(len(all_docs))} Dokumentenseiten.")
     return all_docs
 
 
