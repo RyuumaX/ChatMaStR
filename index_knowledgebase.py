@@ -47,7 +47,7 @@ def load_docs_from_path(path):
     all_docs = []
     all_docs.extend(pdf_docs)
     all_docs.extend(web_docs)
-    print("Insgesamt " + str(len(docs)) + "Dokumente.")
+    print("Insgesamt " + str(len(all_docs)) + "Dokumente.")
     return all_docs
 
 
