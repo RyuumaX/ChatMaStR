@@ -13,7 +13,7 @@ from tqdm import tqdm
 def get_pdf_docs_from_path(path):
     documents = []
     for f in tqdm(listdir(path)):
-        if isfile(join(path, f)):
+        if isfile(join(path, f)) and f.endswith(".pdf"):
             print(join(path, f))
             documents.append(PyPDFLoader(join(path, f)).load())
     return documents
