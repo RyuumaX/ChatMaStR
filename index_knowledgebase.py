@@ -48,7 +48,7 @@ def load_docs_from_path(path):
     all_docs = []
     all_docs.extend(pdf_docs)
     all_docs.extend(web_docs)
-    print("Insgesamt " + str(len(all_docs)) + "Dokumente.")
+    print(f"Insgesamt {str(len(all_docs))} Dokumente.")
     return all_docs
 
 
@@ -66,6 +66,7 @@ def create_vectordb_for_texts(texts, save_path):
 
 
 def split_texts_into_chunks(texts, chunksize, chunk_overlap=0, splitter="recursive"):
+    print(texts)
     if splitter == "recursive":
         splitter = RecursiveCharacterTextSplitter(chunk_size=chunksize, chunk_overlap=chunk_overlap,
                                                   separators=["\n\n", "\n", "(?<=\. )", " ", ""]
