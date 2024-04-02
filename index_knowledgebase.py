@@ -33,21 +33,20 @@ def get_web_docs_from_urls(path):
         web_docs = web_loader.load()
     else:
         web_docs = []
+    print(f"Anzahl Web-Docs: {len(web_docs)}")
     return web_docs
 
 
 def load_docs_from_path(path):
     # Read documents
-    print("loading pdf-documents")
     pdf_docs = get_pdf_docs_from_path(path)
-    print(f"Anzahl Splits von Webdocs: {len(pdf_docs)}")
-    print("loading web-documents")
+    print(f"Anzahl Splits von PDF-docs: {len(pdf_docs)}")
     web_docs = get_web_docs_from_urls(path)
     print(f"Anzahl Splits von Webdocs: {len(web_docs)}")
     all_docs = []
     all_docs.extend(pdf_docs)
     all_docs.extend(web_docs)
-    print(f"Insgesamt {str(len(all_docs))} Dokumente.")
+    print(f"Insgesamt {str(len(all_docs))} Chunks/Splits.")
     return all_docs
 
 
@@ -115,5 +114,5 @@ if __name__ == "__main__":
 
     # create a vector database containing the embeddings for the given texts (usually document chunks/spits)
     vectordb = create_vectordb_for_texts(chunks, save_path=args.output)
-    print(f"Chunks in collection: {vectordb._collection.count()}")
+    print(f"Embeddings in collection: {vectordb._collection.count()}")
     vectordb.persist()
