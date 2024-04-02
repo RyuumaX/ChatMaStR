@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # Split the full documents into smaller chunks (sub-documents)
     chunks = split_texts_into_chunks(docs, chunksize=splitsize, chunk_overlap=overlap, splitter=splitter)
     print("==========first 3 splits==========\n")
-    for chunk in chunks[0][:3]:
+    for chunk in chunks[:3]:
         print(chunk, "\n")
 
     # create a vector database containing the embeddings for the given texts (usually document chunks/spits)
