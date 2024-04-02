@@ -16,7 +16,6 @@ def get_pdf_docs_from_path(path):
         if isfile(join(path, f)) and f.endswith(".pdf"):
             documents.extend(PyPDFLoader(join(path, f)).load())
     print(f"Anzahl PDF-docs: {len(documents)}")
-    print(documents[:2])
     return documents
 
 
