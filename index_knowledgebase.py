@@ -57,7 +57,7 @@ def create_vectordb_for_texts(texts, save_path):
     )
     test_embedding = embedding_model.embed_documents(texts[0].page_content)
     n = 5
-    print(f"\n==========first embedding ({len(test_embedding[:n])} of {len(test_embedding[0])} dimensions:=========\n")
+    print(f"\n==========FIRST EMBEDDING ({len(test_embedding[:n])} OF {len(test_embedding[0])} DIMENSIONS:=========\n")
     print(test_embedding[0][:n], "...")
     vectorstore = Chroma.from_documents(collection_name="small_chunks", documents=texts, embedding=embedding_model,
                                         persist_directory=save_path)
@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     # Split the full documents into smaller chunks (sub-documents)
     chunks = split_texts_into_chunks(docs, chunksize=splitsize, chunk_overlap=overlap, splitter=splitter)
-    print("==========first 3 splits==========\n")
+    print(f"\n==========FIRST 3 OF {len(chunks)} SPLITS==========\n")
     for chunk in chunks[:3]:
         print(chunk, "\n")
 
