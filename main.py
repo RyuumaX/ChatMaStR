@@ -43,28 +43,39 @@ def create_vectorstore_for_docs_in(path="./KnowledgeBase/"):
                          embedding_function=embedding)
 
 @st.cache_resource(ttl="4h")
-def configure_retriever():
-
-
-    
-    fs = LocalFileStore("./KnowledgeBase/store_location_exp")
-    store = create_kv_docstore(fs)
-    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200,
-                                                    separators=["\n\n", "\n", "(?<=\. )", " ", ""]
-                                                    )
-    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100,
-                                                   separators=["\n\n", "\n", "(?<=\. )", " ", ""]
-                                                   )
-    #store = InMemoryStore()
-    big_chunk_retriever = ParentDocumentRetriever(
-        vectorstore=vectorstore,
-        docstore=store,
-        parent_splitter=parentsplitter,
-        child_splitter=childsplitter,
-        search_kwargs={'k': 5}
+def configure_retriever(vectorstore_path="./KnowledgeBase/", docstore_path="./KnowledgeBase/store_location_exp"):
+    embedding = HuggingFaceEmbeddings(
+        model="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
     )
-    big_chunk_retriever.add_documents(knowledgebase)
-    return big_chunk_retriever
+    vectorstore = Chroma(
+        persist_directory=vectorstore_path,
+        embedding_function=embedding
+    )
+    #filestore = get_filestore_from_path(docstore_path)
+    #parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200,
+    #                                                separators=["\n\n", "\n", "(?<=\. )", " ", ""]
+    #                                                )
+    #childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100,
+    #                                               separators=["\n\n", "\n", "(?<=\. )", " ", ""]
+    #                                               )
+    #store = InMemoryStore()
+    # big_chunk_retriever = ParentDocumentRetriever(
+    #     vectorstore=vectorstore,
+    #     docstore=filestore,
+    #     parent_splitter=parentsplitter,
+    #     child_splitter=childsplitter,
+    #     search_kwargs={'k': 5}
+    # )
+    retriever = vectorstore.as_retriever()
+    print(f"Vectorstore Collection count: {vectorstore._collection.count()}")
+    return retriever
+
+
+def get_filestore_from_path(path):
+    fs = LocalFileStore(path)
+    store = create_kv_docstore(fs)
+    return store
+
 
 @st.cache_data
 # TODO: Parsen der Dokumente mit PyPDFLoader statt DirectoryLoader
@@ -215,7 +226,9 @@ if __name__ == '__main__':
                 # finally, run the chain, which invokes the llm-chatcompletion under the hood
 
                 response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
-                #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
+                response = conv_chain.invoke({"question": query},
+                                             
+                                            {"callbacks": [retrieval_handler, stream_handler]})
                 #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
                 print("=====RESPONSE=====")
                 pretty(response, indent=2)

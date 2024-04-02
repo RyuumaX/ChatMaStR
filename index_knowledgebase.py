@@ -1,13 +1,12 @@
 import argparse
-
-import bs4
-import os
 from os import listdir
 from os.path import isfile, join
-from langchain_community.vectorstores.chroma import Chroma
+
+import bs4
 from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter, TokenTextSplitter
-from langchain_community.document_loaders import TextLoader, UnstructuredURLLoader, PyPDFDirectoryLoader, WebBaseLoader, PyPDFLoader
+from langchain_community.document_loaders import (WebBaseLoader, PyPDFLoader)
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores.chroma import Chroma
 from tqdm import tqdm
 
 
@@ -15,7 +14,7 @@ def get_pdf_docs_from_path(path):
     documents = []
     for f in tqdm(listdir(path)):
         if isfile(join(path, f)):
-            documents.append(PyPDFLoader(join(path,f)).load())
+            documents.append(PyPDFLoader(join(path, f)).load())
     return documents
 
 
@@ -42,17 +41,14 @@ def load_docs_from_path(path):
     pdf_docs = get_pdf_docs_from_path(path)
     print("...done")
     print("loading web-documents")
-    web_docs = get_web_docs_from_urls([
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendAnlagen.html",
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendFristen.html"
-    ])
+    web_docs = get_web_docs_from_urls(path)
     print("...done")
     all_docs = []
     all_docs.extend(pdf_docs)
     all_docs.extend(web_docs)
     print("Insgesamt " + str(len(docs)) + "Dokumente.")
     return all_docs
+
 
 def create_vectordb_for_texts(texts, save_path):
     embedding_model = HuggingFaceEmbeddings(
@@ -95,18 +91,17 @@ if __name__ == "__main__":
     argparser.add_argument("-o", "--output", help="specifies the path to where the vectordb containing"
                                                   "the embeddings is to be saved.")
     argparser.add_argument("--splittype", help="specifies the type of textsplitter to use for"
-                                                  "textsplitting/chunking.", default="recursive")
+                                               "textsplitting/chunking.", default="recursive")
     argparser.add_argument("--overlap", help="specifies the amount of overlap between text splits/chunks",
                            default=0)
-    argparser.add_argument( "--splitsize", help="specifies the size of the splits. Actual size will"
-                                                  "depend on the type of splitter used (characters or tokens).",
-                            default=1000)
+    argparser.add_argument("--splitsize", help="specifies the size of the splits. Actual size will"
+                                               "depend on the type of splitter used (characters or tokens).",
+                           default=1000)
 
     args = argparser.parse_args()
     splitter = args.splittype
     overlap = args.overlap
     splitsize = args.splitsize
-
 
     # Load documents for from given path. These docs become the knowledgebase for the RAG-system
     docs = load_docs_from_path(path=args.directory)
@@ -119,4 +114,5 @@ if __name__ == "__main__":
 
     # create a vector database containing the embeddings for the given texts (usually document chunks/spits)
     vectordb = create_vectordb_for_texts(chunks, save_path=args.output)
+    print(f"Chunks in collection: {vectordb._collection.count()}")
     vectordb.persist()
