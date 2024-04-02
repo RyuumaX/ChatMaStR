@@ -57,7 +57,7 @@ def create_vectordb_for_texts(texts, save_path):
     )
     test_embedding = embedding_model.embed_documents(texts[0].page_content)
     n = 5
-    print(f"==========first embedding ({len(test_embedding[:n])} of {len(test_embedding[0])} dimensions:=========")
+    print(f"\n==========first embedding ({len(test_embedding[:n])} of {len(test_embedding[0])} dimensions:=========\n")
     print(test_embedding[0][:n], "...")
     vectorstore = Chroma.from_documents(collection_name="small_chunks", documents=texts, embedding=embedding_model,
                                         persist_directory=save_path)
@@ -65,7 +65,6 @@ def create_vectordb_for_texts(texts, save_path):
 
 
 def split_texts_into_chunks(texts, chunksize, chunk_overlap=0, splitter="recursive"):
-    print(texts[0])
     if splitter == "recursive":
         splitter = RecursiveCharacterTextSplitter(chunk_size=chunksize, chunk_overlap=chunk_overlap,
                                                   separators=["\n\n", "\n", "(?<=\. )", " ", ""]
