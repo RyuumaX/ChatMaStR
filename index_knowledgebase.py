@@ -14,6 +14,7 @@ def get_pdf_docs_from_path(path):
     documents = []
     for f in tqdm(listdir(path)):
         if isfile(join(path, f)):
+            print(join(path, f))
             documents.append(PyPDFLoader(join(path, f)).load())
     return documents
 
