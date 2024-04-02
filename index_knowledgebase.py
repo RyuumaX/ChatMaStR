@@ -95,10 +95,10 @@ if __name__ == "__main__":
     argparser.add_argument("--splittype", help="specifies the type of textsplitter to use for"
                                                "textsplitting/chunking.", default="recursive")
     argparser.add_argument("--overlap", help="specifies the amount of overlap between text splits/chunks",
-                           default=0)
+                           default=0, type=int)
     argparser.add_argument("--splitsize", help="specifies the size of the splits. Actual size will"
                                                "depend on the type of splitter used (characters or tokens).",
-                           default=1000)
+                           default=1000, type=int)
 
     args = argparser.parse_args()
     splitter = args.splittype
