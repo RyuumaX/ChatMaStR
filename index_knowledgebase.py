@@ -16,6 +16,7 @@ def get_pdf_docs_from_path(path):
         if isfile(join(path, f)) and f.endswith(".pdf"):
             print(join(path, f))
             documents.append(PyPDFLoader(join(path, f)).load())
+    print(f"Anzahl PDF-docs: {len(documents)}")
     return documents
 
 
@@ -32,7 +33,7 @@ def get_web_docs_from_urls(path):
         web_docs = web_loader.load()
     else:
         web_docs = []
-
+    print(f"Anzahl Webdocs: {len(web_docs)}")
     return web_docs
 
 
