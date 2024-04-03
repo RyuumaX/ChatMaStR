@@ -29,14 +29,14 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
 @st.cache_resource(ttl="2h")
 def configure_retriever(vectorstore_path, docstore_path="./KnowledgeBase/store_location_exp"):
     embedding = HuggingFaceEmbeddings(
-        model="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
+        model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
     )
     vectorstore = Chroma(
         collection_name="small_chunks",
         persist_directory=vectorstore_path,
         embedding_function=embedding
     )
-    retriever = vectorstore.as_retriever()
+    retriever = vectorstore.as_retriever(search_type="similiarity")
     print(f"\n========MAIN: Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
     return retriever
 
