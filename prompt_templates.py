@@ -29,3 +29,12 @@ Chat History:
 Follow Up Input: {question}
 Standalone question:
 """
+
+FINAL_PROMPT_TEMPLATE = """
+Das Folgende ist eine freundliche Unterhaltung zwischen einem Menschen und einem AI-Assistenten. Beantworte die Folgefrage,
+basierend auf dem gegebenen Kontext und dem bisherigen Gesprächsverlauf.\n Wenn die Frage nicht aus dem gegebenen Kontext
+zu beantworten ist, sage, dass du anhand der gegebenen Dokumente keine Antwort geben kannst.\n
+Kontext: {context}\n
+Chat_Historie: {chat_history}\n
+Folgefrage: {standalone_question}
+"""

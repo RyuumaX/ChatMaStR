@@ -3,8 +3,9 @@ import os.path
 import bs4
 import tqdm
 import streamlit as st
+from langchain.globals import set_debug
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
-from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferMemory, ConversationBufferWindowMemory
 from langchain.retrievers import ParentDocumentRetriever
 from langchain.storage import LocalFileStore
 from langchain.storage._lc_store import create_kv_docstore
@@ -25,24 +26,7 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
 
 
-#TODO: VectorDB nur laden, falls sqlite Datei vorhanden
-def create_vectorstore_for_docs_in(path="./KnowledgeBase/"):
-    knowledgebase = get_pdf_docs_from_path(path)
-    knowledgebase.extend(get_web_docs_from_urls([
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendAnlagen.html",
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendFristen.html"
-    ]))
-    embedding = HuggingFaceEmbeddings(
-        model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer",
-        # temporarily disabled
-        # model_kwargs={'device': 'cuda:1'}
-    )
-    # load persisted vectorstore
-    vectorstore = Chroma(collection_name="small_chunks_exp", persist_directory="./KnowledgeBase/chromadb_experimental",
-                         embedding_function=embedding)
-
-@st.cache_resource(ttl="4h")
+@st.cache_resource(ttl="2h")
 def configure_retriever(vectorstore_path="./KnowledgeBase/", docstore_path="./KnowledgeBase/store_location_exp"):
     embedding = HuggingFaceEmbeddings(
         model="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
@@ -51,51 +35,27 @@ def configure_retriever(vectorstore_path="./KnowledgeBase/", docstore_path="./Kn
         persist_directory=vectorstore_path,
         embedding_function=embedding
     )
-    #filestore = get_filestore_from_path(docstore_path)
-    #parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200,
-    #                                                separators=["\n\n", "\n", "(?<=\. )", " ", ""]
-    #                                                )
-    #childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100,
-    #                                               separators=["\n\n", "\n", "(?<=\. )", " ", ""]
-    #                                               )
-    #store = InMemoryStore()
-    # big_chunk_retriever = ParentDocumentRetriever(
-    #     vectorstore=vectorstore,
-    #     docstore=filestore,
-    #     parent_splitter=parentsplitter,
-    #     child_splitter=childsplitter,
-    #     search_kwargs={'k': 5}
-    # )
+    configure_parent_retriever(docstore_path, vectorstore)
     retriever = vectorstore.as_retriever()
-    print(f"Vectorstore Collection count: {vectorstore._collection.count()}")
+    print(f"\n========MAIN: Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
     return retriever
 
 
-def get_filestore_from_path(path):
-    fs = LocalFileStore(path)
-    store = create_kv_docstore(fs)
-    return store
-
-
-@st.cache_data
-# TODO: Parsen der Dokumente mit PyPDFLoader statt DirectoryLoader
-# TODO: Parserschleife mit tqdm einen Fortschrittsbalken geben
-def get_pdf_docs_from_path(path):
-    pdf_loader = PyPDFDirectoryLoader(path)
-    pdf_docs = pdf_loader.load()
-    return pdf_docs
-
-
-@st.cache_data
-def get_web_docs_from_urls(urls):
-    web_loader = WebBaseLoader(
-        web_paths=urls,
-        bs_kwargs=dict(
-            parse_only=bs4.SoupStrainer(["h", "article", "li"])
-        )
+def configure_parent_retriever(docstore_path, vectorstore):
+    docstore = create_kv_docstore(docstore_path)
+    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200,
+                                                    separators=["\n\n", "\n", "(?<=\. )", " ", ""]
+                                                    )
+    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100,
+                                                   separators=["\n\n", "\n", "(?<=\. )", " ", ""]
+                                                   )
+    big_chunk_retriever = ParentDocumentRetriever(
+        vectorstore=vectorstore,
+        docstore=docstore,
+        parent_splitter=parentsplitter,
+        child_splitter=childsplitter,
+        search_kwargs={'k': 5}
     )
-    web_docs = web_loader.load()
-    return web_docs
 
 
 def add_prompt_templates_together(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):
@@ -116,27 +76,25 @@ def pretty(d, indent=0):
     for key, value in d.items():
         print('\t' * indent + str(key))
         if isinstance(value, dict):
-            pretty(value, indent+1)
+            pretty(value, indent + 1)
         else:
-            print('\t' * (indent+1) + str(value))
+            print('\t' * (indent + 1) + str(value))
 
 
 if __name__ == '__main__':
-    #set_debug(True)
-    # Streamlit Configuration Stuff
-    st.set_page_config(
-        page_title="EWI-Chatbot (Experimental)",
-        page_icon="🤖"
-    )
-    st.header("EWI-Chatbot (Experimental)")
 
+    set_debug(True)
+    # Streamlit Configuration Stuff
+    st.header("EWI-Chatbot (Experimental)")
+    st.set_page_config(page_title="EWI-Chatbot (Experimental)",
+                       page_icon="🤖"
+                       )
     with st.sidebar:
         temperature_slider = st.slider("Temperaturregler:",
                                        0.0, 1.0,
                                        value=0.1,
                                        key="temperature_slider",
                                        )
-
     stream_handler = StreamHandler(st.empty())
     # StreamlitChatMessageHistory() handles adding Messages (AI, Human etc.) to the streamlit session state dictionary.
     # So there is no need to handle that on our own, e.g. no need to do something like
@@ -153,8 +111,7 @@ if __name__ == '__main__':
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
     retriever = configure_retriever()
     chain_type_kwargs = {"prompt": prompt}
-    memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=st_chat_messages, return_messages=True)
-
+    memory = ConversationBufferWindowMemory(k=3, chat_memory=st_chat_messages, return_messages=True)
     # final chain assembly
     conv_chain = ConversationalRetrievalChain.from_llm(llm,
                                                        chain_type="stuff",
@@ -168,43 +125,44 @@ if __name__ == '__main__':
                                            retriever=retriever,
                                            memory=memory
                                            )
-    # TODO: Unterschiedliche Memory Arten testen (Window, Summary)
-    lcel_memory = ConversationBufferMemory(return_messages=True, output_key="answer", input_key="question")
-    loaded_memory = RunnablePassthrough.assign(
-        chat_history=RunnableLambda(lcel_memory.load_memory_variables) | itemgetter("history"),
-    )
-    CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE)
-    ANSWER_PROMPT = PromptTemplate.from_template(prompt_template)
-    # Now we calculate the standalone question
-    make_standalone_question_chain = {
-        "standalone_question": {
-                                   "question": lambda x: x["question"],
-                                   "chat_history": lambda x: get_buffer_string(x["chat_history"]),
-                               }
-                               | CONDENSE_QUESTION_PROMPT
-                               | llm
-                               | StrOutputParser(),
-    }
-    # Now we retrieve the documents
-    retrieved_documents = {
-        "docs": itemgetter("standalone_question") | retriever,
-        "question": lambda x: x["standalone_question"],
-    }
-    # Now we construct the inputs for the final prompt
-    final_inputs = {
-        "context": lambda x: combine_documents(x["docs"]),
-        "question": itemgetter("question"),
-    }
-    # And finally, we do the part that returns the answers
-    answer_chain = {
-        "answer": final_inputs | ANSWER_PROMPT | ChatOpenAI(),
-        "docs": itemgetter("docs"),
-    }
-    # And now we put it all together!
-    lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
+
+    #
+    # lcel_memory = ConversationBufferWindowMemory(k=3, return_messages=True, output_key="answer", input_key="question")
+    # loaded_memory = RunnablePassthrough.assign(
+    #     chat_history=RunnableLambda(lcel_memory.load_memory_variables) | itemgetter("history"),
+    # )
+    # CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE)
+    # ANSWER_PROMPT = PromptTemplate.from_template(prompt_template)
+    # # Now we calculate the standalone question
+    # make_standalone_question_chain = {
+    #     "standalone_question": {
+    #                                "question": lambda x: x["question"],
+    #                                "chat_history": lambda x: get_buffer_string(x["chat_history"]),
+    #                            }
+    #                            | CONDENSE_QUESTION_PROMPT
+    #                            | llm
+    #                            | StrOutputParser(),
+    # }
+    # # Now we retrieve the documents
+    # retrieved_documents = {
+    #     "docs": itemgetter("standalone_question") | retriever,
+    #     "question": lambda x: x["standalone_question"],
+    # }
+    # # Now we construct the inputs for the final prompt
+    # final_inputs = {
+    #     "context": lambda x: combine_documents(x["docs"]),
+    #     "question": itemgetter("question"),
+    # }
+    # # And finally, we do the part that returns the answers
+    # answer_chain = {
+    #     "answer": final_inputs | ANSWER_PROMPT | ChatOpenAI(),
+    #     "docs": itemgetter("docs"),
+    # }
+    # # And now we put it all together!
+    # lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
 
     # streamlit.session_state is streamlits global dictionary for saving session state
-    #if st.session_state["message_history"]
+    # if st.session_state["message_history"]
     if len(st_chat_messages.messages) == 0:
         st_chat_messages.add_ai_message(AIMessage(content="Wie kann ich helfen?"))
     pretty(st.session_state)
@@ -213,25 +171,24 @@ if __name__ == '__main__':
         st.chat_message(msg.type).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        if query == "killdb": #TODO: Killswitch testen
+        if query == "killdb":
             if os.path.isfile("./KnowledgeBase/chromadb_experimental/chroma.sqlite3"):
                 os.remove("./KnowledgeBase/chromadb_experimental/chroma.sqlite3")
         else:
-            #st.session_state["message_history"].append(HumanMessage(content=query))
+            # st.session_state["message_history"].append(HumanMessage(content=query))
             st.chat_message("user").write(query)
 
             with st.chat_message("ai"):
                 stream_handler = StreamHandler(st.empty())
                 retrieval_handler = PrintRetrievalHandler(st.container())
                 # finally, run the chain, which invokes the llm-chatcompletion under the hood
-
-                response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
+                # response = qa_chain.invoke({"query": query},
+                #                            {"callbacks": [retrieval_handler,stream_handler]})
                 response = conv_chain.invoke({"question": query},
-                                             
-                                            {"callbacks": [retrieval_handler, stream_handler]})
-                #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
+                                             {"callbacks": [retrieval_handler, stream_handler]})
+
                 print("=====RESPONSE=====")
                 pretty(response, indent=2)
-                #st.session_state["message_history"].append(AIMessage(content=response["result"]))
+                # st.session_state["message_history"].append(AIMessage(content=response["result"]))
                 print("=====STREAMLIT SESSION DICT=====")
                 pretty(st.session_state, indent=2)
