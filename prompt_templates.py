@@ -10,6 +10,7 @@ Please ensure that your responses are socially unbiased and positive in nature.
 If a question does not make any sense, or is not factually coherent, explain why instead of answering something not
 correct. If you don't know the answer to a question, please don't share false information."""
 
+
 SYS_PROMPT = """Du bist ein hilfreicher, respektvoller und ehrlicher Assistent.
 Antworte immer so hilfreich wie möglich und nutze dafür den gegebenen Kontext.
 Deine Antworten sollten ausschließlich die Frage beantworten und keinen Text nach der Antwort beinhalten.
@@ -17,10 +18,13 @@ Wenn eine Frage nicht anhand des Kontexts beantwortbar ist, sage dass du die Fra
 Kontextes nicht beantworten kannst.
 """
 
+
 INSTRUCTION_PROMPT_TEMPLATE = """KONTEXT:/n/n {context}/n
 Frage: {question}"""
 
+
 DOC_PROMPT_TEMPLATE = "{page_content}"
+
 
 STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE = """
 Gegeben ist die unten stehende Konversation zwischen einem Menschen und dem AI-Assistenten, sowie eine Folgefrage.
@@ -31,6 +35,7 @@ Konversation:
 Folgefrage: {question}
 Eigenständige Frage:
 """
+
 
 FINAL_PROMPT_TEMPLATE = """
 Das Folgende ist eine freundliche Unterhaltung zwischen einem Menschen und einem AI-Assistenten. Beantworte die Folgefrage,

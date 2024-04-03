@@ -28,14 +28,11 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
 
 @st.cache_resource(ttl="2h")
 def configure_retriever(vectorstore_path):
-    embedding = HuggingFaceEmbeddings(
-        model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
-    )
-    vectorstore = Chroma(
-        collection_name="small_chunks",
-        persist_directory=vectorstore_path,
-        embedding_function=embedding
-    )
+    embedding = HuggingFaceEmbeddings(model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer")
+    vectorstore = Chroma(collection_name="small_chunks",
+                         persist_directory=vectorstore_path,
+                         embedding_function=embedding
+                         )
     retriever = vectorstore.as_retriever(search_type="similarity")
     print(f"\n========MAIN: Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
     return retriever
@@ -159,7 +156,7 @@ if __name__ == '__main__':
     # }
 
     # And now we put it all together!
-    lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
+    #lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
 
     # streamlit.session_state is streamlits global dictionary for saving session state
     # if st.session_state["message_history"]
@@ -188,8 +185,8 @@ if __name__ == '__main__':
                                              {"callbacks": [retrieval_handler, stream_handler]},
                                              )
 
-                print("=====RESPONSE=====")
+                print(f"\n=====RESPONSE=====\n")
                 pretty(response, indent=2)
                 # st.session_state["message_history"].append(AIMessage(content=response["result"]))
-                print("=====STREAMLIT SESSION DICT=====")
+                print(f"\n=====STREAMLIT SESSION DICT=====\n")
                 pretty(st.session_state, indent=2)
