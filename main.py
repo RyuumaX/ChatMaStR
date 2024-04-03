@@ -86,10 +86,10 @@ if __name__ == '__main__':
     KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
     set_debug(True)
     # Streamlit Configuration Stuff
-    st.header("EWI-Chatbot (Experimental)")
     st.set_page_config(page_title="EWI-Chatbot (Experimental)",
                        page_icon="🤖"
                        )
+    st.header("EWI-Chatbot (Experimental)")
     with st.sidebar:
         temperature_slider = st.slider("Temperaturregler:",
                                        0.0, 1.0,
