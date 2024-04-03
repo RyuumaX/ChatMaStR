@@ -122,7 +122,7 @@ if __name__ == '__main__':
                                                        verbose=True
                                                        )
 
-    # memory_window = ConversationBufferWindowMemory(k=3, return_messages=True, output_key="answer", input_key="question")
+    # memory_window = ConversationBufferWindowMemory(k=3, chat_memory=st_chat_messages, return_messages=True)
     # loaded_memory = RunnablePassthrough.assign(
     #     chat_history=RunnableLambda(memory_window.load_memory_variables) | itemgetter("history"),
     # )
@@ -157,9 +157,9 @@ if __name__ == '__main__':
     #     "answer": final_inputs | ANSWER_PROMPT | ChatOpenAI(),
     #     "docs": itemgetter("docs"),
     # }
-    #
-    # # And now we put it all together!
-    # lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
+
+    # And now we put it all together!
+    lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
 
     # streamlit.session_state is streamlits global dictionary for saving session state
     # if st.session_state["message_history"]
