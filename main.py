@@ -32,6 +32,7 @@ def configure_retriever(vectorstore_path, docstore_path="./KnowledgeBase/store_l
         model="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
     )
     vectorstore = Chroma(
+        collection_name="small_chunks",
         persist_directory=vectorstore_path,
         embedding_function=embedding
     )
@@ -113,6 +114,7 @@ if __name__ == '__main__':
     chain_type_kwargs = {"prompt": prompt}
     memory = ConversationBufferWindowMemory(k=3, chat_memory=st_chat_messages, return_messages=True)
     # final chain assembly
+
     conv_chain = ConversationalRetrievalChain.from_llm(llm,
                                                        chain_type="stuff",
                                                        combine_docs_chain_kwargs=chain_type_kwargs,
