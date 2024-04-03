@@ -36,7 +36,7 @@ def configure_retriever(vectorstore_path):
         persist_directory=vectorstore_path,
         embedding_function=embedding
     )
-    retriever = vectorstore.as_retriever(search_type="similiarity")
+    retriever = vectorstore.as_retriever(search_type="similarity")
     print(f"\n========MAIN: Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
     return retriever
 
@@ -121,20 +121,14 @@ if __name__ == '__main__':
                                                        retriever=retriever,
                                                        memory=memory
                                                        )
-    qa_chain = RetrievalQA.from_chain_type(llm,
-                                           chain_type="stuff",
-                                           chain_type_kwargs=chain_type_kwargs,
-                                           retriever=retriever,
-                                           memory=memory
-                                           )
 
-    #
-    # lcel_memory = ConversationBufferWindowMemory(k=3, return_messages=True, output_key="answer", input_key="question")
+    # memory_window = ConversationBufferWindowMemory(k=3, return_messages=True, output_key="answer", input_key="question")
     # loaded_memory = RunnablePassthrough.assign(
-    #     chat_history=RunnableLambda(lcel_memory.load_memory_variables) | itemgetter("history"),
+    #     chat_history=RunnableLambda(memory_window.load_memory_variables) | itemgetter("history"),
     # )
     # CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE)
     # ANSWER_PROMPT = PromptTemplate.from_template(prompt_template)
+    #
     # # Now we calculate the standalone question
     # make_standalone_question_chain = {
     #     "standalone_question": {
@@ -145,26 +139,30 @@ if __name__ == '__main__':
     #                            | llm
     #                            | StrOutputParser(),
     # }
+    #
     # # Now we retrieve the documents
     # retrieved_documents = {
     #     "docs": itemgetter("standalone_question") | retriever,
     #     "question": lambda x: x["standalone_question"],
     # }
+    #
     # # Now we construct the inputs for the final prompt
     # final_inputs = {
     #     "context": lambda x: combine_documents(x["docs"]),
     #     "question": itemgetter("question"),
     # }
+    #
     # # And finally, we do the part that returns the answers
     # answer_chain = {
     #     "answer": final_inputs | ANSWER_PROMPT | ChatOpenAI(),
     #     "docs": itemgetter("docs"),
     # }
+    #
     # # And now we put it all together!
     # lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
 
-    # streamlit.session_state is streamlits global dictionary for saving session state
-    # if st.session_state["message_history"]
+    streamlit.session_state is streamlits global dictionary for saving session state
+    if st.session_state["message_history"]
     if len(st_chat_messages.messages) == 0:
         st_chat_messages.add_ai_message(AIMessage(content="Wie kann ich helfen?"))
     pretty(st.session_state)

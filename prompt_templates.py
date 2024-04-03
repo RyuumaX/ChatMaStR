@@ -13,7 +13,8 @@ correct. If you don't know the answer to a question, please don't share false in
 SYS_PROMPT = """Du bist ein hilfreicher, respektvoller und ehrlicher Assistent.
 Antworte immer so hilfreich wie möglich und nutze dafür den gegebenen Kontext.
 Deine Antworten sollten ausschließlich die Frage beantworten und keinen Text nach der Antwort beinhalten.
-Wenn eine Frage nicht anhand des Kontexts beantwortbar ist, sage dies und gib keine falschen Informationen.
+Wenn eine Frage nicht anhand des Kontexts beantwortbar ist, sage dass du die Frage anhand des gegebenen
+Kontextes nicht beantworten kannst.
 """
 
 INSTRUCTION_PROMPT_TEMPLATE = """KONTEXT:/n/n {context}/n
@@ -22,12 +23,13 @@ Frage: {question}"""
 DOC_PROMPT_TEMPLATE = "{page_content}"
 
 STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE = """
-Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
+Gegeben ist die unten stehende Konversation zwischen einem Menschen und dem AI-Assistenten, sowie eine Folgefrage.
+Formuliere die Folgefrage in eine eigenständige Frage um und beachte dabei die vorherige Konversation.
 
-Chat History:
+Konversation:
 {chat_history}
-Follow Up Input: {question}
-Standalone question:
+Folgefrage: {question}
+Eigenständige Frage:
 """
 
 FINAL_PROMPT_TEMPLATE = """
