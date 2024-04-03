@@ -35,7 +35,6 @@ def configure_retriever(vectorstore_path, docstore_path="./KnowledgeBase/store_l
         persist_directory=vectorstore_path,
         embedding_function=embedding
     )
-    configure_parent_retriever(docstore_path, vectorstore)
     retriever = vectorstore.as_retriever()
     print(f"\n========MAIN: Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
     return retriever
