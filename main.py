@@ -27,7 +27,7 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
 
 
 @st.cache_resource(ttl="2h")
-def configure_retriever(vectorstore_path, docstore_path="./KnowledgeBase/store_location_exp"):
+def configure_retriever(vectorstore_path):
     embedding = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
     )
