@@ -84,7 +84,6 @@ def pretty(d, indent=0):
 if __name__ == '__main__':
 
     KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
-    set_debug(True)
     # Streamlit Configuration Stuff
     st.set_page_config(page_title="EWI-Chatbot (Experimental)",
                        page_icon="🤖"
@@ -119,7 +118,8 @@ if __name__ == '__main__':
                                                        chain_type="stuff",
                                                        combine_docs_chain_kwargs=chain_type_kwargs,
                                                        retriever=retriever,
-                                                       memory=memory
+                                                       memory=memory,
+                                                       verbose=True
                                                        )
 
     # memory_window = ConversationBufferWindowMemory(k=3, return_messages=True, output_key="answer", input_key="question")
@@ -161,8 +161,8 @@ if __name__ == '__main__':
     # # And now we put it all together!
     # lcel_qa_chain = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
 
-    streamlit.session_state is streamlits global dictionary for saving session state
-    if st.session_state["message_history"]
+    # streamlit.session_state is streamlits global dictionary for saving session state
+    # if st.session_state["message_history"]
     if len(st_chat_messages.messages) == 0:
         st_chat_messages.add_ai_message(AIMessage(content="Wie kann ich helfen?"))
     pretty(st.session_state)
@@ -185,7 +185,8 @@ if __name__ == '__main__':
                 # response = qa_chain.invoke({"query": query},
                 #                            {"callbacks": [retrieval_handler,stream_handler]})
                 response = conv_chain.invoke({"question": query},
-                                             {"callbacks": [retrieval_handler, stream_handler]})
+                                             {"callbacks": [retrieval_handler, stream_handler]},
+                                             )
 
                 print("=====RESPONSE=====")
                 pretty(response, indent=2)
