@@ -27,7 +27,7 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
 
 
 @st.cache_resource(ttl="2h")
-def configure_retriever(vectorstore_path="./KnowledgeBase/", docstore_path="./KnowledgeBase/store_location_exp"):
+def configure_retriever(vectorstore_path, docstore_path="./KnowledgeBase/store_location_exp"):
     embedding = HuggingFaceEmbeddings(
         model="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
     )
@@ -83,6 +83,7 @@ def pretty(d, indent=0):
 
 if __name__ == '__main__':
 
+    KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
     set_debug(True)
     # Streamlit Configuration Stuff
     st.header("EWI-Chatbot (Experimental)")
@@ -109,7 +110,7 @@ if __name__ == '__main__':
 
     # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
-    retriever = configure_retriever()
+    retriever = configure_retriever(KNOWLEDGEBASE_PATH)
     chain_type_kwargs = {"prompt": prompt}
     memory = ConversationBufferWindowMemory(k=3, chat_memory=st_chat_messages, return_messages=True)
     # final chain assembly
@@ -172,8 +173,8 @@ if __name__ == '__main__':
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
         if query == "killdb":
-            if os.path.isfile("./KnowledgeBase/chromadb_experimental/chroma.sqlite3"):
-                os.remove("./KnowledgeBase/chromadb_experimental/chroma.sqlite3")
+            if os.path.isfile(KNOWLEDGEBASE_PATH + "/chroma.sqlite3"):
+                os.remove(KNOWLEDGEBASE_PATH + "chroma.sqlite3")
         else:
             # st.session_state["message_history"].append(HumanMessage(content=query))
             st.chat_message("user").write(query)
