@@ -173,7 +173,7 @@ if __name__ == '__main__':
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
         if query == "killdb":
-            if os.path.isfile(KNOWLEDGEBASE_PATH + "/chroma.sqlite3"):
+            if os.path.isfile(KNOWLEDGEBASE_PATH + "chroma.sqlite3"):
                 os.remove(KNOWLEDGEBASE_PATH + "chroma.sqlite3")
         else:
             # st.session_state["message_history"].append(HumanMessage(content=query))
