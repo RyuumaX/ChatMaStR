@@ -16,11 +16,11 @@ then
   fi
 fi
 
-python3 -m fastchat.serve.controller --host 0.0.0.0
+tmux split-window -h python3 -m fastchat.serve.controller --host 0.0.0.0
 
-python3 -m fastchat.serve.model_worker --model-names "gpt-3.5-turbo,text-davinci-003,text-embedding-ada-002,Llama-2-13b-german" --model-path jphme/em_german_7b_v01 --host 0.0.0.0
+tmux split-window -v -p 66 python3 -m fastchat.serve.model_worker --model-names "gpt-3.5-turbo,text-davinci-003,text-embedding-ada-002,Llama-2-13b-german" --model-path jphme/em_german_7b_v01 --host 0.0.0.0
 
-python3 -m fastchat.serve.openai_api_server --host 0.0.0.0 --port 7860
+tmux split-window -v python3 -m fastchat.serve.openai_api_server --host 0.0.0.0 --port 7860
 
 
 # worker 0
