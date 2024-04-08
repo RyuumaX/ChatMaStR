@@ -105,8 +105,8 @@ if __name__ == '__main__':
     # answer_prompt = PromptTemplate.from_template(prompt_template)
     #
     # # LLM configuration. ChatOpenAI is merely a config object
-    # llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
-    # retriever = configure_retriever(KNOWLEDGEBASE_PATH)
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
+    retriever = configure_retriever(KNOWLEDGEBASE_PATH)
     # chain_type_kwargs = {"prompt": query}
     #
     # memory = ConversationBufferWindowMemory(k=3, chat_memory=chat_history, return_messages=True)
@@ -170,12 +170,21 @@ if __name__ == '__main__':
     
     Answer the humans questions based on the given context:
     Kontext: {context}
+    
+    If you cannot answer a question based on the given context, say that you cannot answer the question with the context provided.
 
     Question: {question}
     """
     query = ChatPromptTemplate.from_template(template)
 
-    chain = query | ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+    chain = (
+            {
+                "context": itemgetter("question") | retriever,
+                "question": itemgetter("question")
+            }
+            | query
+            | ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+    )
     chain_with_history = RunnableWithMessageHistory(
         chain,
         lambda session_id: chat_history,  # Always return the instance created earlier
@@ -191,7 +200,7 @@ if __name__ == '__main__':
 
         # As usual, new messages are added to StreamlitChatMessageHistory when the Chain is called.
         config = {"configurable": {"session_id": "any"}}
-        response = chain_with_history.invoke({"question": query, "context": "Carl Jonson is a member of the groove street gang."}, config)
+        response = chain_with_history.invoke({"question": query}, config)
         print(chat_history.messages)
         st.chat_message("ai").write(response.content)
 
