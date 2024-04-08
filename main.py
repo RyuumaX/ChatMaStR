@@ -17,7 +17,7 @@ from langchain_core.prompts import format_document
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai.chat_models import ChatOpenAI
-
+from langchain.globals import set_debug
 from callback_handlers import StreamHandler, PrintRetrievalHandler
 from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS, SYS_PROMPT, \
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
@@ -76,7 +76,7 @@ def pretty(d, indent=0):
 
 
 if __name__ == '__main__':
-
+    set_debug(True)
     KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
     # Streamlit Configuration Stuff
     st.set_page_config(page_title="EWI-Chatbot (Experimental)",
@@ -157,15 +157,25 @@ if __name__ == '__main__':
     if len(chat_history.messages) == 0:
         chat_history.add_ai_message("Wie kann ich helfen?")
 
-    query = ChatPromptTemplate.from_messages(
-        [
-            ("system", "Du bist ein freundlicher AI-Assistent der eine Unterhaltung mit einem Menschen führt."),
-            MessagesPlaceholder(variable_name="history"),
-            ("human", "{question}"),
-        ]
-    )
+    # query = ChatPromptTemplate.from_messages(
+    #     [
+    #         ("system", "You are an AI chatbot having a conversation with a human."),
+    #         MessagesPlaceholder(variable_name="history"),
+    #         ("human", "{question}"),
+    #     ]
+    # )
 
-    chain = query | ChatOpenAI()
+    template = """You are an AI Chatbot having a conversation with a human:
+    {history}
+    
+    Answer the humans questions based on the given context:
+    Kontext: {context}
+
+    Question: {question}
+    """
+    query = ChatPromptTemplate.from_template(template)
+
+    chain = query | ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
     chain_with_history = RunnableWithMessageHistory(
         chain,
         lambda session_id: chat_history,  # Always return the instance created earlier
@@ -181,7 +191,7 @@ if __name__ == '__main__':
 
         # As usual, new messages are added to StreamlitChatMessageHistory when the Chain is called.
         config = {"configurable": {"session_id": "any"}}
-        response = chain_with_history.invoke({"question": query, "context": "Balkonkraftwerke müssen vom Bundesamt für Balkonkraftwerke zuerst aktzeptiert werden"}, config)
+        response = chain_with_history.invoke({"question": query, "context": "Carl Jonson is a member of the groove street gang."}, config)
         print(chat_history.messages)
         st.chat_message("ai").write(response.content)
 
