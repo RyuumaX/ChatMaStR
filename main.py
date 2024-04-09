@@ -32,6 +32,10 @@ def configure_retriever(vectorstore_path):
                          )
     retriever = vectorstore.as_retriever(search_type="similarity")
     print(f"\n========Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
+    results = retriever.get_relevant_documents("Wie registriere ich ein Balkonkraftwerk?")
+    print(results)
+    contents = [x.page_content for x in results]
+    print(contents)
     return retriever
 
 
@@ -76,9 +80,8 @@ def pretty(d, indent=0):
 
 
 if __name__ == '__main__':
-    set_debug(True)
-    KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
-    # Streamlit Configuration Stuff
+
+    # Streamlit UI/Page Configuration Stuff
     st.set_page_config(page_title="EWI-Chatbot (Experimental)",
                        page_icon="🤖"
                        )
@@ -90,13 +93,19 @@ if __name__ == '__main__':
                                        key="temperature_slider",
                                        )
     stream_handler = StreamHandler(st.empty())
+    # Here ends Streamlit UI configuration ============================================================================
+
+    set_debug(True)
+    KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
+    # # LLM configuration. ChatOpenAI is merely a config object
+    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
+    retriever = configure_retriever(KNOWLEDGEBASE_PATH)
     # StreamlitChatMessageHistory() handles adding Messages (AI, Human etc.) to the streamlit session state dictionary.
     # So there is no need to handle that on our own, e.g. no need to do something like
-    # st.session_state["messages"].append(msg).
+    # "st.session_state["messages"].append(msg)".
     chat_history = StreamlitChatMessageHistory(key="message_history")
-    # Here ends Streamlit configuration
 
-    # Here begins the actual langchain code.
+    # Here begins the chain build-up
     # prompt_template = add_prompt_templates_together(INSTRUCTION_PROMPT_TEMPLATE, SYS_PROMPT)
     # query = PromptTemplate(template=prompt_template,
     #                        input_variables=["context", "question"]
@@ -104,16 +113,13 @@ if __name__ == '__main__':
     # condense_question_prompt = PromptTemplate.from_template(STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE)
     # answer_prompt = PromptTemplate.from_template(prompt_template)
     #
-    # # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
-    retriever = configure_retriever(KNOWLEDGEBASE_PATH)
     # chain_type_kwargs = {"prompt": query}
     #
     # memory = ConversationBufferWindowMemory(k=3, chat_memory=chat_history, return_messages=True)
     # loaded_memory = RunnablePassthrough.assign(
     #     chat_history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"),
     # )
-    # # Now we calculate the standalone question
+    # Calculate the standalone question
     # make_standalone_question_chain = {
     #     "standalone_question": {
     #                                "question": lambda x: x["question"],
@@ -123,7 +129,7 @@ if __name__ == '__main__':
     #                            | llm
     #                            | StrOutputParser(),
     # }
-    # # Now we retrieve the documents
+    # Retrieve the documents
     # retrieved_documents = {
     #     "docs": itemgetter("standalone_question") | retriever,
     #     "question": itemgetter("standalone_question"),
@@ -136,53 +142,44 @@ if __name__ == '__main__':
     # # And finally, we do the part that returns the answers
     # answer_chain = (
     #     {
-    #         "answer": final_inputs | answer_prompt | ChatOpenAI(),
+    #         "answer": final_inputs | answer_prompt | llm,
     #         "docs": itemgetter("docs"),
     #     }
     # )
     # # And now we put it all together!
     # lcel_chain_with_history = loaded_memory | make_standalone_question_chain | retrieved_documents | answer_chain
-    #
-    # # final chain assembly
-    # conv_chain = ConversationalRetrievalChain.from_llm(llm,
-    #                                                    chain_type="stuff",
-    #                                                    combine_docs_chain_kwargs=chain_type_kwargs,
-    #                                                    retriever=retriever,
-    #                                                    memory=ConversationBufferWindowMemory(k=3),
-    #                                                    verbose=True
-    #                                                    )
 
-    # streamlit.session_state is streamlits global dictionary for saving session state
-    # if st.session_state["message_history"]
     if len(chat_history.messages) == 0:
         chat_history.add_ai_message("Wie kann ich helfen?")
 
-    # query = ChatPromptTemplate.from_messages(
+    # prompt = ChatPromptTemplate.from_messages(
     #     [
     #         ("system", "You are an AI chatbot having a conversation with a human."),
     #         MessagesPlaceholder(variable_name="history"),
+    #         MessagesPlaceholder(variable_name="context"),
     #         ("human", "{question}"),
     #     ]
     # )
 
     template = """You are an AI Chatbot having a conversation with a human:
     {history}
-    
+
     Answer the humans questions based on the given context:
     Kontext: {context}
-    
+
     If you cannot answer a question based on the given context, say that you cannot answer the question with the context provided.
 
     Question: {question}
     """
-    query = ChatPromptTemplate.from_template(template)
+    prompt = ChatPromptTemplate.from_template(template)
 
     chain = (
             {
                 "context": itemgetter("question") | retriever,
-                "question": itemgetter("question")
+                "question": itemgetter("question"),
+                "history": itemgetter("history")
             }
-            | query
+            | prompt
             | ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
     )
     chain_with_history = RunnableWithMessageHistory(
@@ -192,40 +189,33 @@ if __name__ == '__main__':
         history_messages_key="history",
     )
 
+    # write out all messages to the streamlit page that are already in the chat history.
     for msg in chat_history.messages:
         st.chat_message(msg.type).write(msg.content)
 
+    # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
         st.chat_message("human").write(query)
 
-        # As usual, new messages are added to StreamlitChatMessageHistory when the Chain is called.
+        # New messages are added to StreamlitChatMessageHistory when the Chain is called.
         config = {"configurable": {"session_id": "any"}}
-        response = chain_with_history.invoke({"question": query}, config)
-        print(chat_history.messages)
-        st.chat_message("ai").write(response.content)
+        response = st.write_stream(chain_with_history.stream({"question": query}, config))
+        # print(chat_history.messages)
+        # st.chat_message("ai").write(response.content)
 
     # pretty(st.session_state)
-    # print(f"\n=============BISHERIGER CHAT VERLAUF===================\n {memory.buffer}\n")
-    #
-    # for msg in st.session_state["message_history"]:
+    # print(f"\n=============BISHERIGER CHAT VERLAUF===================\n {chat_history.buffer}\n")
+    # write out all messages to the streamlit page that are already in the chat history.
+    # for msg in chat_history.messages:
     #     st.chat_message(msg.type).write(msg.content)
     #
     # if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-    #     # st.session_state["message_history"].append(HumanMessage(content=query))
     #     st.chat_message("user").write(query)
     #
     #     with st.chat_message("ai"):
     #         stream_handler = StreamHandler(st.empty())
     #         retrieval_handler = PrintRetrievalHandler(st.container())
-    #
-    #         # finally, run the chain, which invokes the llm-chatcompletion under the hood
-    #         response = conv_chain.invoke({"question": query, "chat_history": chat_history.messages},
-    #                                      {"callbacks": [retrieval_handler, stream_handler]})
-    #
-    #         # retrieval_response = chain_with_history.invoke({"question": prompt}, config)
-    #         # print(retrieval_response)
-    #
-    #         # lcel_response = lcel_chain_with_history.invoke({"question": query, "chat_history": memory},
+    #         # response = lcel_chain_with_history.invoke({"question": query, "chat_history": history},
     #         #                                              {"callbacks": [retrieval_handler, stream_handler]})
     #
     #         print(f"\n=====RESPONSE=====\n")
