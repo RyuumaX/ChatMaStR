@@ -12,15 +12,16 @@ correct. If you don't know the answer to a question, please don't share false in
 
 
 SYS_PROMPT = """Du bist ein hilfreicher, respektvoller und ehrlicher Assistent.
-Antworte immer so hilfreich wie möglich und nutze dafür den gegebenen Kontext.
+Antworte immer so hilfreich wie möglich und nutze dafür den gegebenen Kontext und den bisherige Gesprächshistorie.
 Deine Antworten sollten ausschließlich die Frage beantworten und keinen Text nach der Antwort beinhalten.
 Wenn du eine Frage nicht anhand des Kontexts beantworten kannst, sage dass du die Frage anhand des gegebenen
 Kontextes nicht beantworten kannst.
 """
 
 
-INSTRUCTION_PROMPT_TEMPLATE = """KONTEXT:/n/n {context}/n
-Frage: {question}"""
+INSTRUCTION_PROMPT_TEMPLATE = """KONTEXT:\n {context}\n\n
+HISTORIE:\n {history}\n\n
+FRAGE:\n {question}"""
 
 
 DOC_PROMPT_TEMPLATE = "{page_content}"
@@ -28,19 +29,17 @@ DOC_PROMPT_TEMPLATE = "{page_content}"
 
 STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE = """
 Gegeben ist die unten stehende Konversation zwischen einem Menschen und dem AI-Assistenten, sowie eine Folgefrage.
-Formuliere die Folgefrage in eine eigenständige Frage um und beachte dabei die vorherige Konversation.
-
-Konversation:
-{chat_history}
-Folgefrage: {question}
-Eigenständige Frage:
+Formuliere die Folgefrage in eine eigenständige Frage um und beachte dabei die vorherige Konversation.\n\n
+Konversation:\n {history}\n\n
+Folgefrage:\n {question}\n\n
 """
 
 
 FINAL_PROMPT_TEMPLATE = """
-Das Folgende ist eine freundliche Unterhaltung zwischen einem Menschen und einem AI-Assistenten. Beantworte die Folgefrage,
-basierend auf dem gegebenen Kontext und dem bisherigen Gesprächsverlauf.\n Wenn die Frage nicht aus dem gegebenen Kontext
-zu beantworten ist, sage, dass du anhand der gegebenen Dokumente keine Antwort geben kannst.\n
+Das Folgende ist eine freundliche Unterhaltung zwischen einem Menschen und einem AI-Assistenten. Beantworte die
+Folgefrage, basierend auf dem gegebenen Kontext und dem bisherigen Gesprächsverlauf.\n Wenn die Frage nicht aus dem
+gegebenen Kontext oder der Gesprächshistorie zu beantworten ist, sage, dass du anhand der gegebenen Dokumente keine
+Antwort geben kannst.\n\n
 Kontext: {context}\n
 Chat_Historie: {chat_history}\n
 Folgefrage: {standalone_question}
