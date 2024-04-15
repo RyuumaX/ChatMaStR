@@ -32,10 +32,6 @@ def configure_retriever(vectorstore_path):
                          )
     retriever = vectorstore.as_retriever(search_type="similarity")
     print(f"\n========Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
-    results = retriever.get_relevant_documents("Wie registriere ich ein Balkonkraftwerk?")
-    print(results)
-    contents = [x.page_content for x in results]
-    print(contents)
     return retriever
 
 
@@ -188,6 +184,7 @@ if __name__ == '__main__':
         input_messages_key="question",
         history_messages_key="history",
     )
+    retrieval_handler = PrintRetrievalHandler(st.container())
 
     # write out all messages to the streamlit page that are already in the chat history.
     for msg in chat_history.messages:
@@ -198,7 +195,8 @@ if __name__ == '__main__':
         st.chat_message("human").write(query)
 
         # New messages are added to StreamlitChatMessageHistory when the Chain is called.
-        config = {"configurable": {"session_id": "any"}}
+        config = {"configurable": {"session_id": "any"},
+                  "callbacks": [retrieval_handler]}
         response = st.write_stream(chain_with_history.stream({"question": query}, config))
         # print(chat_history.messages)
         # st.chat_message("ai").write(response.content)
