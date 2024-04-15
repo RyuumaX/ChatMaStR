@@ -184,7 +184,7 @@ if __name__ == '__main__':
         input_messages_key="question",
         history_messages_key="history",
     )
-    retrieval_handler = PrintRetrievalHandler(st.container())
+
 
     # write out all messages to the streamlit page that are already in the chat history.
     for msg in chat_history.messages:
@@ -193,7 +193,7 @@ if __name__ == '__main__':
     # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
         st.chat_message("human").write(query)
-
+        retrieval_handler = PrintRetrievalHandler(st.container())
         # New messages are added to StreamlitChatMessageHistory when the Chain is called.
         config = {"configurable": {"session_id": "any"},
                   "callbacks": [retrieval_handler]}
