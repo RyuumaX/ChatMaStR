@@ -19,7 +19,8 @@ Kontextes nicht beantworten kannst.
 """
 
 
-INSTRUCTION_PROMPT_TEMPLATE = """KONTEXT:/n/n {context}/n
+INSTRUCTION_PROMPT_TEMPLATE = """KONTEXT:\n\n {context}\n\n
+Chat_Historie: {history}\n\n
 Frage: {question}"""
 
 
