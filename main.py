@@ -53,8 +53,8 @@ def configure_parent_retriever(docstore_path, vectorstore):
 
 
 def add_prompt_templates_together(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):
-    system_prompt = B_SYS + new_system_prompt + E_SYS
-    prompt_template = B_INST + system_prompt + instruction + E_INST
+    system_prompt = new_system_prompt
+    prompt_template = system_prompt + instruction
     return prompt_template
 
 
@@ -105,45 +105,42 @@ if __name__ == '__main__':
 
     # Here begins the chain build-up
     prompt_template = add_prompt_templates_together(INSTRUCTION_PROMPT_TEMPLATE, SYS_PROMPT)
-    query = PromptTemplate(template=prompt_template,
-                           input_variables=["context", "question"]
-                           )
+    prompt = PromptTemplate.from_template(prompt_template)
     make_standalone_query_prompt = PromptTemplate.from_template(STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE)
-    answer_prompt = PromptTemplate.from_template(prompt_template)
-
-    chain_type_kwargs = {"prompt": query}
 
     memory = ConversationBufferWindowMemory(k=3, chat_memory=chat_history, return_messages=True)
-    loaded_memory = RunnablePassthrough.assign(
-        chat_history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"),
-    )
+    loaded_memory = RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables)
+                                                            | itemgetter("history")
+                                               )
     # Calculate the standalone question
     make_standalone_query_chain = {
         "standalone_question": {
                                    "question": lambda x: x["question"],
-                                   "history": lambda x: get_buffer_string(x["chat_history"]),
+                                   "history": lambda x: get_buffer_string(x["history"]),
                                }
                                | make_standalone_query_prompt
                                | llm
                                | StrOutputParser(),
+        "history": lambda x: get_buffer_string(x["history"])
     }
     # Retrieve the documents
     retrieve_documents_chain = {
         "docs": itemgetter("standalone_question") | retriever,
         "question": itemgetter("standalone_question"),
+        "history": itemgetter("history")
     }
     # Now we construct the inputs for the final prompt
     final_inputs = {
         "context": lambda x: combine_documents(x["docs"]),
         "question": itemgetter("question"),
+        "history": itemgetter("history")
     }
     # And finally, we do the part that returns the answers
-    answer_chain = final_inputs | answer_prompt | llm
+    answer_chain = final_inputs | prompt | llm
 
     retrieve_documents_with_history_chain = loaded_memory | make_standalone_query_chain | retrieve_documents_chain
 
-    chain_with_history = retrieve_documents_with_history_chain | answer_chain | StrOutputParser
-
+    chain_with_history = retrieve_documents_with_history_chain | answer_chain
 
     # template = """You are an AI Chatbot having a conversation with a human:
     # {history}
@@ -151,7 +148,8 @@ if __name__ == '__main__':
     # Answer the humans questions based on the given context:
     # Kontext: {context}
     #
-    # If you cannot answer a question based on the given context, say that you cannot answer the question with the context provided.
+    # If you cannot answer a question based on the given context, say that you cannot answer the question with the
+    # context provided.
     #
     # Question: {question}
     # """
@@ -173,7 +171,6 @@ if __name__ == '__main__':
     #     history_messages_key="history",
     # )
 
-
     # write out all messages to the streamlit page that are already in the chat history.
     for msg in chat_history.messages:
         st.chat_message(msg.type).write(msg.content)
@@ -181,12 +178,15 @@ if __name__ == '__main__':
     # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
         st.chat_message("human").write(query)
+
         retrieval_handler = PrintRetrievalHandler(st.container())
         # New messages are added to StreamlitChatMessageHistory when the Chain is called.
         config = {"configurable": {"session_id": "any"},
                   "callbacks": [retrieval_handler]}
         # print(retrieve_documents_with_history_chain.invoke({"question": query}), config)
         response = st.write_stream(chain_with_history.stream({"question": query}, config))
+        chat_history.add_user_message(query)
+        chat_history.add_ai_message(response)
         # print(chat_history.messages)
         # st.chat_message("ai").write(response.content)
 

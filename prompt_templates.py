@@ -29,9 +29,10 @@ DOC_PROMPT_TEMPLATE = "{page_content}"
 
 STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE = """
 Gegeben ist die unten stehende Konversation zwischen einem Menschen und dem AI-Assistenten, sowie eine Folgefrage.
-Formuliere die Folgefrage in eine eigenständige Frage um und beachte dabei die vorherige Konversation.\n\n
-Konversation:\n {history}\n\n
-Folgefrage:\n {question}\n\n
+Falls sich die Folgefrage auf den Gesprächsverlauf bezieht, formuliere die Folgefrage in eine eigenständige Frage um
+und beachte dabei die vorherige Konversation. Falls nicht, formuliere die Frage nicht um.\n\n
+KONVERSATION:\n {history}\n\n
+FOLGEFRAGE:\n {question}\n\n
 """
 
 
@@ -40,7 +41,7 @@ Das Folgende ist eine freundliche Unterhaltung zwischen einem Menschen und einem
 Folgefrage, basierend auf dem gegebenen Kontext und dem bisherigen Gesprächsverlauf.\n Wenn die Frage nicht aus dem
 gegebenen Kontext oder der Gesprächshistorie zu beantworten ist, sage, dass du anhand der gegebenen Dokumente keine
 Antwort geben kannst.\n\n
-Kontext: {context}\n
-Chat_Historie: {chat_history}\n
-Folgefrage: {standalone_question}
+KONTEXT: {context}\n
+HISTORIE: {history}\n
+FOLGEFRAGE: {standalone_question}
 """
