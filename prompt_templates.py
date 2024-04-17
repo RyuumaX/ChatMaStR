@@ -11,9 +11,9 @@ If a question does not make any sense, or is not factually coherent, explain why
 correct. If you don't know the answer to a question, please don't share false information."""
 
 
-SYS_PROMPT = """Du bist ein hilfreicher, respektvoller und ehrlicher Assistent.
-Antworte immer so hilfreich wie möglich und nutze dafür den gegebenen Kontext und den bisherige Gesprächshistorie.
-Deine Antworten sollten ausschließlich die Frage beantworten und keinen Text nach der Antwort beinhalten.
+SYS_PROMPT = """Du bist ein respektvoller und ehrlicher AI-Chatbot.
+Nutze für deine Antworten den gegebenen Kontext und die bisherige Gesprächshistorie.
+Deine Antworten sollen ausschließlich die Frage beantworten und keinen Text nach der Antwort beinhalten.
 Wenn du eine Frage nicht anhand des Kontexts beantworten kannst, sage dass du die Frage anhand des gegebenen
 Kontextes nicht beantworten kannst.
 """
@@ -28,11 +28,10 @@ DOC_PROMPT_TEMPLATE = "{page_content}"
 
 
 STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE = """
-Gegeben ist die unten stehende Konversation zwischen einem Menschen und dem AI-Assistenten, sowie eine Folgefrage.
-Falls sich die Folgefrage auf den Gesprächsverlauf bezieht, formuliere die Folgefrage in eine eigenständige Frage um
-und beachte dabei die vorherige Konversation. Falls nicht, formuliere die Frage nicht um.\n\n
-KONVERSATION:\n {history}\n\n
-FOLGEFRAGE:\n {question}\n\n
+Given is the following conversation between a Human and AI-Chatbot as well as a follow up question.
+Reformulate the follow-up question into a standalone question, based on the context.\n\n
+CONTEXT:\n {history}\n\n
+FOLLOW-UP:\n {question}\n\n
 """
 
 

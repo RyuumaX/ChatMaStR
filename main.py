@@ -21,6 +21,8 @@ from langchain.globals import set_debug
 from callback_handlers import StreamHandler, PrintRetrievalHandler
 from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS, SYS_PROMPT, \
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
+from langsmith.wrappers import wrap_openai
+from langsmith import traceable
 
 
 @st.cache_resource(ttl="2h")
