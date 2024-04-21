@@ -179,7 +179,7 @@ if __name__ == '__main__':
     # )
 
     # write out all messages to the streamlit page that are already in the chat history.
-    for id, msg in enumerate(chat_history.messages):
+    for idx, msg in enumerate(chat_history.messages):
         with st.chat_message(msg.type):
             st.write(msg.content)
             if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
@@ -199,7 +199,7 @@ if __name__ == '__main__':
                         titles=[f"Image #{str(i)}" for i in range(len(images))],
                         div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
                         img_style={"margin": "5px", "height": "100px"},
-                        key=f"image_gallery_{id}"
+                        key=f"image_gallery_{idx}"
                     )
 
                     placeholder = st.container(height=500)
