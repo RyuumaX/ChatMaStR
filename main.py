@@ -1,3 +1,4 @@
+import base64
 from operator import itemgetter
 
 import streamlit as st
@@ -23,6 +24,7 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
     INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
 from langsmith.wrappers import wrap_openai
 from langsmith import traceable
+from st_clickable_images import clickable_images
 
 
 @st.cache_resource(ttl="2h")
@@ -75,6 +77,9 @@ def pretty(d, indent=0):
             pretty(value, indent + 1)
         else:
             print('\t' * (indent + 1) + str(value))
+
+def show_big_img(img):
+    st.session_state["big_img"] = img
 
 
 if __name__ == '__main__':
@@ -174,28 +179,84 @@ if __name__ == '__main__':
     # )
 
     # write out all messages to the streamlit page that are already in the chat history.
-    for msg in chat_history.messages:
-        st.chat_message(msg.type).write(msg.content)
+    for id, msg in enumerate(chat_history.messages):
+        with st.chat_message(msg.type):
+            st.write(msg.content)
+            if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
+                with st.expander("Bilderstrecke"):
 
-        if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
-            imagecontainer = st.container()
-            imagecontainer.image("./images/test.jpg")
+                    paths = ["./images/test.jpg", "./images/Kowalski_analyse2.jpg"]
+                    # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
+                    # LLMs gehört
+                    images = []
+                    for file in paths:
+                        with open(file, "rb") as image:
+                            encoded = base64.b64encode(image.read()).decode()
+                            images.append(f"data:image/jpeg;base64,{encoded}")
+
+                    clicked = clickable_images(
+                        images,
+                        titles=[f"Image #{str(i)}" for i in range(len(images))],
+                        div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
+                        img_style={"margin": "5px", "height": "100px"},
+                        key=f"image_gallery_{id}"
+                    )
+
+                    placeholder = st.container(height=500)
+                    with placeholder.container():
+                        if clicked:
+                            placeholder.image(images[clicked])
+                        else:
+                            placeholder.image(images[0])
 
     # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
         st.chat_message("human").write(query)
+        with st.chat_message("ai"):
+            retrieval_handler = PrintRetrievalHandler(st.container())
+            # New messages are added to StreamlitChatMessageHistory when the Chain is called.
+            config = {"configurable": {"session_id": "any"},
+                      "callbacks": [retrieval_handler]}
+            # print(retrieve_documents_with_history_chain.invoke({"question": query}), config)
+            response = st.write_stream(chain_with_history.stream({"question": query}, config))
+            chat_history.add_user_message(query)
+            chat_history.add_ai_message(response)
+            with st.expander("Bilderstrecke"):
+                paths = ["./images/test.jpg", "./images/Kowalski_analyse2.jpg"]
+                # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
+                # LLMs gehört
+                images = []
+                for file in paths:
+                    with open(file, "rb") as image:
+                        encoded = base64.b64encode(image.read()).decode()
+                        images.append(f"data:image/jpeg;base64,{encoded}")
 
-        retrieval_handler = PrintRetrievalHandler(st.container())
-        # New messages are added to StreamlitChatMessageHistory when the Chain is called.
-        config = {"configurable": {"session_id": "any"},
-                  "callbacks": [retrieval_handler]}
-        # print(retrieve_documents_with_history_chain.invoke({"question": query}), config)
-        response = st.write_stream(chain_with_history.stream({"question": query}, config))
-        chat_history.add_user_message(query)
-        chat_history.add_ai_message(response)
-        st.image("./images/test.jpg", caption="test.jpg")
-        # print(chat_history.messages)
-        # st.chat_message("ai").write(response.content)
+                clicked = clickable_images(
+                    images,
+                    titles=[f"Image #{str(i)}" for i in range(len(images))],
+                    div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
+                    img_style={"margin": "5px", "height": "100px"},
+                    key="image_gallery"
+                )
+
+                # row1 = st.columns(3)
+                # row2 = st.columns(3)
+                #
+                # for col in row1 + row2:
+                #     tile = col.container(height=100)
+                #     with tile:
+                #         st.button(st.image("./images/test.jpg"), on_click=show_big_img)
+                placeholder = st.container(height=500)
+                with placeholder.container():
+                    if clicked:
+                        placeholder.image(images[clicked])
+                    else:
+                        placeholder.image(images[0])
+
+                # st.image("./images/test.jpg")
+            # st.image("./images/test.jpg", caption="test.jpg")
+            # print(chat_history.messages)
+            # st.chat_message("ai").write(response.content)
 
     # pretty(st.session_state)
     # print(f"\n=============BISHERIGER CHAT VERLAUF===================\n {chat_history.buffer}\n")
