@@ -239,24 +239,12 @@ if __name__ == '__main__':
                     key="image_gallery"
                 )
 
-                # row1 = st.columns(3)
-                # row2 = st.columns(3)
-                #
-                # for col in row1 + row2:
-                #     tile = col.container(height=100)
-                #     with tile:
-                #         st.button(st.image("./images/test.jpg"), on_click=show_big_img)
                 placeholder = st.container(height=500)
                 with placeholder.container():
                     if clicked:
                         placeholder.image(images[clicked])
                     else:
                         placeholder.image(images[0])
-
-                # st.image("./images/test.jpg")
-            # st.image("./images/test.jpg", caption="test.jpg")
-            # print(chat_history.messages)
-            # st.chat_message("ai").write(response.content)
 
     # pretty(st.session_state)
     # print(f"\n=============BISHERIGER CHAT VERLAUF===================\n {chat_history.buffer}\n")
