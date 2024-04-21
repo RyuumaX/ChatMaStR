@@ -177,6 +177,10 @@ if __name__ == '__main__':
     for msg in chat_history.messages:
         st.chat_message(msg.type).write(msg.content)
 
+        if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
+            imagecontainer = st.container()
+            imagecontainer.image("./images/test.jpg")
+
     # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
         st.chat_message("human").write(query)
@@ -189,6 +193,7 @@ if __name__ == '__main__':
         response = st.write_stream(chain_with_history.stream({"question": query}, config))
         chat_history.add_user_message(query)
         chat_history.add_ai_message(response)
+        st.image("./images/test.jpg", caption="test.jpg")
         # print(chat_history.messages)
         # st.chat_message("ai").write(response.content)
 
