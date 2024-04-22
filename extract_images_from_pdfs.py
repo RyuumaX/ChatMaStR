@@ -14,7 +14,7 @@ def extract_imgs_from_path(workdir):
                     xref = img[0]
                     image = doc.extract_image(xref)
                     pix = fitz.Pixmap(doc, xref)
-                    pix.save(os.path.join(workdir,"/images/", "%s_p%s-%s.png" % (each_path[:-4], i, xref)))
+                    pix.save(os.path.join(workdir,"images/", "%s_p%s-%s.png" % (each_path[:-4], i, xref)))
 
     print("Done!")
 
