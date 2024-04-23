@@ -14,3 +14,4 @@ anyio==4.0.0
 pypdf==3.17.4
 beautifulsoup4==4.12.3
 tqdm==4.66.2
+pydantic==1.*
