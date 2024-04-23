@@ -15,4 +15,3 @@ pypdf==3.17.4
 beautifulsoup4==4.12.3
 tqdm==4.66.2
 st-clickable-images==0.0.3
-pydantic==1.*
