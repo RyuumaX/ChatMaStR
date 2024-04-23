@@ -185,7 +185,7 @@ if __name__ == '__main__':
             if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
                 with st.expander("Bilderstrecke"):
 
-                    paths = ["./images/test.jpg", "./images/Kowalski_analyse2.jpg"]
+                    paths = ["./images/test1.png", "./images/test2.png"]
                     # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
                     # LLMs gehört
                     images = []
@@ -222,7 +222,7 @@ if __name__ == '__main__':
             chat_history.add_user_message(query)
             chat_history.add_ai_message(response)
             with st.expander("Bilderstrecke"):
-                paths = ["./images/test1.jpg", "./images/test2.jpg"]
+                paths = ["./images/test1.png", "./images/test2.png"]
                 # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
                 # LLMs gehört
                 images = []
