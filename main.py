@@ -1,6 +1,6 @@
 import base64
 from operator import itemgetter
-
+from os import path
 import streamlit as st
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferWindowMemory
@@ -29,6 +29,8 @@ from st_clickable_images import clickable_images
 
 @st.cache_resource(ttl="2h")
 def configure_retriever(vectorstore_path):
+    if path.exists(vectorstore_path):
+        print(f"Found Knowledgebase at {vectorstore_path}")
     embedding = HuggingFaceEmbeddings(model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer")
     vectorstore = Chroma(collection_name="small_chunks",
                          persist_directory=vectorstore_path,
