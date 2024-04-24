@@ -263,8 +263,3 @@ if __name__ == '__main__':
     #         # response = lcel_chain_with_history.invoke({"question": query, "chat_history": history},
     #         #                                              {"callbacks": [retrieval_handler, stream_handler]})
     #
-    #         print(f"\n=====RESPONSE=====\n")
-    #         # pretty(lcel_response, indent=2)
-    #         # st.session_state["message_history"].append(AIMessage(content=response["result"]))
-    #         print(f"\n=====STREAMLIT SESSION DICT=====\n")
-    #         pretty(st.session_state, indent=2)
