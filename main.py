@@ -31,6 +31,8 @@ from st_clickable_images import clickable_images
 def configure_retriever(vectorstore_path):
     if path.exists(vectorstore_path):
         print(f"Found Knowledgebase at {vectorstore_path}")
+    else:
+        print("No Knowledgebase found!")
     embedding = HuggingFaceEmbeddings(model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer")
     vectorstore = Chroma(collection_name="small_chunks",
                          persist_directory=vectorstore_path,
