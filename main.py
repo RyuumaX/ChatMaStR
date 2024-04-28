@@ -29,7 +29,7 @@ from st_clickable_images import clickable_images
 
 @st.cache_resource(ttl="2h")
 def configure_retriever(vectorstore_path):
-    if path.exists(vectorstore_path + "chroma_sqlite3"):
+    if path.exists(vectorstore_path):
         print(f"Found Knowledgebase at {vectorstore_path}")
     else:
         print("No Knowledgebase found!")

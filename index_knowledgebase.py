@@ -57,7 +57,7 @@ def create_vectordb_for_texts(texts, save_path):
     )
     test_embedding = embedding_model.embed_documents(texts[0].page_content)
     n = 5
-    print(f"\n==========FIRST EMBEDDING ({len(test_embedding[:n])} OF {len(test_embedding[0])} DIMENSIONS:=========\n")
+    print(f"\n==========FIRST EMBEDDING ({len(test_embedding[:n])} OF {len(test_embedding[0])} DIMENSIONS):=========\n")
     print(test_embedding[0][:n], "...")
     vectorstore = Chroma.from_documents(collection_name="small_chunks", documents=texts, embedding=embedding_model,
                                         persist_directory=save_path)
