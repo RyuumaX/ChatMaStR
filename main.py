@@ -38,7 +38,10 @@ def configure_retriever(vectorstore_path):
                          persist_directory=vectorstore_path,
                          embedding_function=embedding
                          )
-    retriever = vectorstore.as_retriever(search_type="similarity")
+    #retriever = vectorstore.as_retriever(search_type="similarity_score_threshold",
+     #                                    search_kwargs={"k": 6, "score_threshold": 0.64})
+
+    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 5})
     print(f"\n========Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
     return retriever
 
@@ -62,7 +65,7 @@ def configure_parent_retriever(docstore_path, vectorstore):
 
 def add_prompt_templates_together(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):
     system_prompt = new_system_prompt
-    prompt_template = system_prompt + instruction
+    prompt_template = system_prompt + "\n" + instruction
     return prompt_template
 
 
@@ -86,6 +89,13 @@ def show_big_img(img):
     st.session_state["big_img"] = img
 
 
+def trim_question(text: str):
+    new = text.replace("Standalone-Folgefrage:", "").strip()
+    new = new.replace("Standalone question:", "").strip()
+    new = new.replace("Standalone Frage:", "").strip()
+    return new
+
+
 if __name__ == '__main__':
 
     # Streamlit UI/Page Configuration Stuff
@@ -103,7 +113,7 @@ if __name__ == '__main__':
     # Here ends Streamlit UI configuration ============================================================================
 
     set_debug(True)
-    KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
+    KNOWLEDGEBASE_PATH = "./KnowledgeBase/EWI/chromadb_experimental/"
     # # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
     retriever = configure_retriever(KNOWLEDGEBASE_PATH)
@@ -119,7 +129,7 @@ if __name__ == '__main__':
     prompt = PromptTemplate.from_template(prompt_template)
     make_standalone_query_prompt = PromptTemplate.from_template(STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE)
 
-    memory = ConversationBufferWindowMemory(k=3, chat_memory=chat_history, return_messages=True)
+    memory = ConversationBufferWindowMemory(k=5, chat_memory=chat_history, return_messages=True)
     loaded_memory = RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables)
                                                             | itemgetter("history")
                                                )
@@ -131,7 +141,8 @@ if __name__ == '__main__':
                                }
                                | make_standalone_query_prompt
                                | llm
-                               | StrOutputParser(),
+                               | StrOutputParser()
+                               | RunnableLambda(trim_question),
         "history": lambda x: get_buffer_string(x["history"])
     }
     # Retrieve the documents
@@ -217,14 +228,19 @@ if __name__ == '__main__':
     if query := st.chat_input():
         st.chat_message("human").write(query)
         with st.chat_message("ai"):
-            retrieval_handler = PrintRetrievalHandler(st.container())
             # New messages are added to StreamlitChatMessageHistory when the Chain is called.
-            config = {"configurable": {"session_id": "any"},
-                      "callbacks": [retrieval_handler]}
+            config = {"configurable": {"session_id": "any"}}
             # print(retrieve_documents_with_history_chain.invoke({"question": query}), config)
             response = st.write_stream(chain_with_history.stream({"question": query}, config))
             chat_history.add_user_message(query)
             chat_history.add_ai_message(response)
+
+            with st.expander("Zurückgelieferte Dokumente"):
+                retrieved_docs = retriever.invoke(query)
+                for doc in retrieved_docs:
+                    source = path.basename(doc.metadata["source"])
+                    st.markdown("**"+source+"**")
+                    st.markdown(doc.page_content)
             # with st.expander("Bilderstrecke"):
             #     paths = ["./images/test1.png", "./images/test2.png"]
             #     # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
