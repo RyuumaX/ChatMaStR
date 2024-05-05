@@ -205,7 +205,7 @@ if __name__ == '__main__':
 
     # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
-        search_query = remove_words_from_text(query)
+        search_query = remove_words_from_text(query, stopwords)
         st.chat_message("human").write(query)
         with st.chat_message("ai"):
             # New messages are added to StreamlitChatMessageHistory when the Chain is called.
