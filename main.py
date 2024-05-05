@@ -25,6 +25,7 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
 from langsmith.wrappers import wrap_openai
 from langsmith import traceable
 from st_clickable_images import clickable_images
+from index_knowledgebase import remove_words_from_text
 
 
 @st.cache_resource(ttl="2h")
@@ -113,10 +114,18 @@ if __name__ == '__main__':
     # Here ends Streamlit UI configuration ============================================================================
 
     set_debug(True)
-    KNOWLEDGEBASE_PATH = "./KnowledgeBase/EWI/chromadb_experimental/"
-    # # LLM configuration. ChatOpenAI is merely a config object
+    KNOWLEDGEBASE_PATH = "./KnowledgeBase/MastR/chromadb_experimental/"
+    STOPWORD_PATH = "./KnowledgeBase/stopwords_german.txt"
+    stopwords = []
+    with open(STOPWORD_PATH) as file:
+        for line in file:
+            line.strip()
+            stopwords.extend(line.split(", "))
+
+    # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
     retriever = configure_retriever(KNOWLEDGEBASE_PATH)
+
     # StreamlitChatMessageHistory() handles adding Messages (AI, Human etc.) to the streamlit session state dictionary.
     # So there is no need to handle that on our own, e.g. no need to do something like
     # "st.session_state["messages"].append(msg)".
@@ -130,9 +139,8 @@ if __name__ == '__main__':
     make_standalone_query_prompt = PromptTemplate.from_template(STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE)
 
     memory = ConversationBufferWindowMemory(k=5, chat_memory=chat_history, return_messages=True)
-    loaded_memory = RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables)
-                                                            | itemgetter("history")
-                                               )
+    loaded_memory = RunnablePassthrough.assign(history=
+                                               RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
     # Calculate the standalone question
     make_standalone_query_chain = {
         "standalone_question": {
@@ -164,35 +172,6 @@ if __name__ == '__main__':
 
     chain_with_history = retrieve_documents_with_history_chain | answer_chain
 
-    # template = """You are an AI Chatbot having a conversation with a human:
-    # {history}
-    #
-    # Answer the humans questions based on the given context:
-    # Kontext: {context}
-    #
-    # If you cannot answer a question based on the given context, say that you cannot answer the question with the
-    # context provided.
-    #
-    # Question: {question}
-    # """
-    # prompt = ChatPromptTemplate.from_template(template)
-    #
-    # chain = (
-    #         {
-    #             "context": itemgetter("question") | retriever,
-    #             "question": itemgetter("question"),
-    #             "history": itemgetter("history")
-    #         }
-    #         | prompt
-    #         | ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
-    # )
-    # chain_with_history = RunnableWithMessageHistory(
-    #     chain,
-    #     lambda session_id: chat_history,  # Always return the instance created earlier
-    #     input_messages_key="question",
-    #     history_messages_key="history",
-    # )
-
     # write out all messages to the streamlit page that are already in the chat history.
     for idx, msg in enumerate(chat_history.messages):
         with st.chat_message(msg.type):
@@ -201,8 +180,8 @@ if __name__ == '__main__':
             #     with st.expander("Bilderstrecke"):
             #
             #         paths = ["./images/test1.png", "./images/test2.png"]
-            #         # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
-            #         # LLMs gehört
+            #         # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort
+            #         # des LLMs gehört
             #         images = []
             #         for file in paths:
             #             with open(file, "rb") as image:
@@ -226,12 +205,15 @@ if __name__ == '__main__':
 
     # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
+        search_query = remove_words_from_text(query)
         st.chat_message("human").write(query)
         with st.chat_message("ai"):
             # New messages are added to StreamlitChatMessageHistory when the Chain is called.
             config = {"configurable": {"session_id": "any"}}
             # print(retrieve_documents_with_history_chain.invoke({"question": query}), config)
-            response = st.write_stream(chain_with_history.stream({"question": query}, config))
+            # calling stream is the same as calling invoke for a chain but returns an iterator so we can display the
+            # LLMs answer as it is being generated
+            response = st.write_stream(chain_with_history.stream({"question": search_query}, config))
             chat_history.add_user_message(query)
             chat_history.add_ai_message(response)
 
@@ -265,19 +247,3 @@ if __name__ == '__main__':
             #             placeholder.image(images[clicked])
             #         else:
             #             placeholder.image(images[0])
-
-    # pretty(st.session_state)
-    # print(f"\n=============BISHERIGER CHAT VERLAUF===================\n {chat_history.buffer}\n")
-    # write out all messages to the streamlit page that are already in the chat history.
-    # for msg in chat_history.messages:
-    #     st.chat_message(msg.type).write(msg.content)
-    #
-    # if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-    #     st.chat_message("user").write(query)
-    #
-    #     with st.chat_message("ai"):
-    #         stream_handler = StreamHandler(st.empty())
-    #         retrieval_handler = PrintRetrievalHandler(st.container())
-    #         # response = lcel_chain_with_history.invoke({"question": query, "chat_history": history},
-    #         #                                              {"callbacks": [retrieval_handler, stream_handler]})
-    #

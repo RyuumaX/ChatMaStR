@@ -84,8 +84,8 @@ def split_texts_into_chunks(texts, chunksize, chunk_overlap=0, splitter="recursi
     return splits
 
 
-def remove_stopwords_from_text(text: str, stopwords: list[str]) -> str:
-    resultwords = [word for word in re.split("\W+", text) if word.lower() not in stopwords]
+def remove_words_from_text(text: str, words: list[str]) -> str:
+    resultwords = [word for word in re.split("\W+", text) if word.lower() not in words]
     result = ' '.join(resultwords)
     return result
 
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
             chunks_with_stopwords = deepcopy(chunks)
             for chunk in tqdm(chunks):
-                chunk.page_content = remove_stopwords_from_text(chunk.page_content, stopwords)
+                chunk.page_content = remove_words_from_text(chunk.page_content, stopwords)
             print(f"\n==========FIRST 3 OF {len(chunks)} SPLITS (stopwords removed)==========\n")
             for chunk in chunks[:3]:
                 print(chunk, "\n")
