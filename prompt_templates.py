@@ -14,23 +14,24 @@ correct. If you don't know the answer to a question, please don't share false in
 
 
 SYS_PROMPT = """You are a respectul and honest AI-Chatbot in a conversation with a human.
-Under "KONVERSATION:" you find the conversation you had with the human up until now.
-Under "FRAGE:" you find the humans current question that you must answer, based on the information below "KONTEXT".
-Under "KONTEXT:" you find information that is relevant for answering the humans question.
+The conversation you had with the human until now is delimited by the tags <history> and </history>.
+Answer the humans current question based on the context information delimited by the tags <context> and </context>.
+The current question that you must answer is delimited by the tags <question> and </question>.
 Answer the humans current question.
 """
 
 
 INSTRUCTION_PROMPT_TEMPLATE = """
-KONVERSATION:\n {history}\n\n
-KONTEXT:\n {context}\n\n
-FRAGE:\n {question}"""
+<history>\n{history}</history>\n\n
+<context>\n{context}</context>\n\n
+<question>\n{question}</question>"""
 
 
 STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE = """
-Given is the following CONVERSATION between a Human and AI-Chatbot as well as a follow-up question.
-Reformulate the follow-up question into a standalone question, based on the information given in the conversation.
-Do not drop any information from the follow-up question\n\n
-CONVERSATION:\n {history}\n\n
-QUESTION:\n {question}\n\n
+Given is the following conversation between a Human and AI-Chatbot as well as a follow-up question.
+Reformulate the follow-up question delimited by <question> and </question> into a standalone question,
+based on the information given in the conversation which is delimited by <conversation> and </conversation>.
+Do not drop any information that is asked for in the follow-up question when formulating the standalone question.\n\n
+<conversation>\n{history}</conversation>\n\n
+<question>:\n{question}</question>\n\n
 """

@@ -1,4 +1,6 @@
 import argparse
+import os
+from copy import deepcopy
 from os import listdir
 from os.path import isfile, join
 
@@ -8,6 +10,7 @@ from langchain_community.document_loaders import (WebBaseLoader, PyPDFLoader)
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
 from tqdm import tqdm
+import re
 
 
 def get_pdf_docs_from_path(path):
@@ -81,6 +84,12 @@ def split_texts_into_chunks(texts, chunksize, chunk_overlap=0, splitter="recursi
     return splits
 
 
+def remove_stopwords_from_text(text: str, stopwords: list[str]) -> str:
+    resultwords = [word for word in re.split("\W+", text) if word.lower() not in stopwords]
+    result = ' '.join(resultwords)
+    return result
+
+
 if __name__ == "__main__":
 
     argparser = argparse.ArgumentParser(description="takes the path to a directory containing a set of pdf-documents"
@@ -98,6 +107,9 @@ if __name__ == "__main__":
     argparser.add_argument("--splitsize", help="specifies the size of the splits. Actual size will"
                                                "depend on the type of splitter used (characters or tokens).",
                            default=1000, type=int)
+    argparser.add_argument("--stopwords", help="Path to file.txt containing a list of stopwords that"
+                                               "are to be removed from the document chunks, before embeddings are"
+                                               "created")
 
     args = argparser.parse_args()
     splitter = args.splittype
@@ -112,6 +124,26 @@ if __name__ == "__main__":
     print(f"\n==========FIRST 3 OF {len(chunks)} SPLITS==========\n")
     for chunk in chunks[:3]:
         print(chunk, "\n")
+
+    # if a list of stopwords is provided with the start of this script, remove those from the textchunks before
+    # embedding them
+    if args.stopwords:
+        if os.path.exists(args.stopwords):
+            print("\nList of stopwords provided. Removing stopwords from chunks...\n")
+            stopwords = []
+            with open(args.stopwords) as file:
+                for line in file:
+                    line.strip()
+                    stopwords.extend(line.split(", ")) # verrry brittle code, depends on format of stopword file!
+
+            chunks_with_stopwords = deepcopy(chunks)
+            for chunk in tqdm(chunks):
+                chunk.page_content = remove_stopwords_from_text(chunk.page_content, stopwords)
+            print(f"\n==========FIRST 3 OF {len(chunks)} SPLITS (stopwords removed)==========\n")
+            for chunk in chunks[:3]:
+                print(chunk, "\n")
+        else:
+            print(f"\nFile wth path '{args.stopwords}' does not exist!\n")
 
     # create a vector database containing the embeddings for the given texts (usually document chunks/spits)
     vectordb = create_vectordb_for_texts(chunks, save_path=args.output)
