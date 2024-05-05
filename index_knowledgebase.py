@@ -90,7 +90,7 @@ def remove_words_from_text(text: str, words: list[str]) -> str:
 
     querywords = text.split()
 
-    resultwords = [word for word in querywords if word.lower() not in stopwords]
+    resultwords = [word for word in querywords if word.lower() not in words]
     result = ' '.join(resultwords)
     return result
 
