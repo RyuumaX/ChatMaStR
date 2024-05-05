@@ -123,7 +123,7 @@ if __name__ == '__main__':
             stopwords.extend(line.split(", "))
 
     # LLM configuration. ChatOpenAI is merely a config object
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", streaming=True, temperature=st.session_state["temperature_slider"])
+    llm = ChatOpenAI(streaming=True, temperature=st.session_state["temperature_slider"])
     retriever = configure_retriever(KNOWLEDGEBASE_PATH)
 
     # StreamlitChatMessageHistory() handles adding Messages (AI, Human etc.) to the streamlit session state dictionary.

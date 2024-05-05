@@ -85,7 +85,12 @@ def split_texts_into_chunks(texts, chunksize, chunk_overlap=0, splitter="recursi
 
 
 def remove_words_from_text(text: str, words: list[str]) -> str:
-    resultwords = [word for word in re.split("\W+", text) if word.lower() not in words]
+    # resultwords = [word for word in re.split("\W+", text) if word.lower() not in words]
+    # result = ' '.join(resultwords)
+
+    querywords = text.split()
+
+    resultwords = [word for word in querywords if word.lower() not in stopwords]
     result = ' '.join(resultwords)
     return result
 
