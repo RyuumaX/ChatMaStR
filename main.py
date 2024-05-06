@@ -1,5 +1,4 @@
 import base64
-import os.path
 from operator import itemgetter
 from os import path
 import streamlit as st
@@ -118,7 +117,7 @@ if __name__ == '__main__':
     KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
     IMAGE_PATH = "./KnowledgeBase/images"
     STOPWORD_PATH = "./KnowledgeBase/stopwords_german.txt"
-    if os.path.exists(STOPWORD_PATH):
+    if path.exists(STOPWORD_PATH):
         stopwords = []
         with open(STOPWORD_PATH) as file:
             for line in file:
