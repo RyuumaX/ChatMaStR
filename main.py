@@ -1,4 +1,5 @@
 import base64
+import os.path
 from operator import itemgetter
 from os import path
 import streamlit as st
@@ -115,12 +116,14 @@ if __name__ == '__main__':
 
     set_debug(True)
     KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
+    IMAGE_PATH = "./KnowledgeBase/images"
     STOPWORD_PATH = "./KnowledgeBase/stopwords_german.txt"
-    stopwords = []
-    with open(STOPWORD_PATH) as file:
-        for line in file:
-            line.strip()
-            stopwords.extend(line.split(", "))
+    if os.path.exists(STOPWORD_PATH):
+        stopwords = []
+        with open(STOPWORD_PATH) as file:
+            for line in file:
+                line.strip()
+                stopwords.extend(line.split(", "))
 
     # LLM configuration. ChatOpenAI is merely a config object
     llm = ChatOpenAI(streaming=True, temperature=st.session_state["temperature_slider"])
@@ -176,32 +179,32 @@ if __name__ == '__main__':
     for idx, msg in enumerate(chat_history.messages):
         with st.chat_message(msg.type):
             st.write(msg.content)
-            # if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
-            #     with st.expander("Bilderstrecke"):
-            #
-            #         paths = ["./images/test1.png", "./images/test2.png"]
-            #         # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort
-            #         # des LLMs gehört
-            #         images = []
-            #         for file in paths:
-            #             with open(file, "rb") as image:
-            #                 encoded = base64.b64encode(image.read()).decode()
-            #                 images.append(f"data:image/jpeg;base64,{encoded}")
-            #
-            #         clicked = clickable_images(
-            #             images,
-            #             titles=[f"Image #{str(i)}" for i in range(len(images))],
-            #             div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
-            #             img_style={"margin": "5px", "height": "100px"},
-            #             key=f"image_gallery_{idx}"
-            #         )
-            #
-            #         placeholder = st.container(height=500)
-            #         with placeholder.container():
-            #             if clicked:
-            #                 placeholder.image(images[clicked])
-            #             else:
-            #                 placeholder.image(images[0])
+            if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
+                with st.expander("Bilderstrecke"):
+
+                    paths = [f"{IMAGE_PATH}/test1.png", f"{IMAGE_PATH}/test2.png"]
+                    # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort
+                    # des LLMs gehört
+                    images = []
+                    for file in paths:
+                        with open(file, "rb") as image:
+                            encoded = base64.b64encode(image.read()).decode()
+                            images.append(f"data:image/jpeg;base64,{encoded}")
+
+                    clicked = clickable_images(
+                        images,
+                        titles=[f"Image #{str(i)}" for i in range(len(images))],
+                        div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
+                        img_style={"margin": "5px", "height": "100px"},
+                        key=f"image_gallery_{idx}"
+                    )
+
+                    placeholder = st.container(height=500)
+                    with placeholder.container():
+                        if clicked:
+                            placeholder.image(images[clicked])
+                        else:
+                            placeholder.image(images[0])
 
     # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
@@ -223,27 +226,27 @@ if __name__ == '__main__':
                     source = path.basename(doc.metadata["source"])
                     st.markdown("**"+source+"**")
                     st.markdown(doc.page_content)
-            # with st.expander("Bilderstrecke"):
-            #     paths = ["./images/test1.png", "./images/test2.png"]
-            #     # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
-            #     # LLMs gehört
-            #     images = []
-            #     for file in paths:
-            #         with open(file, "rb") as image:
-            #             encoded = base64.b64encode(image.read()).decode()
-            #             images.append(f"data:image/jpeg;base64,{encoded}")
-            #
-            #     clicked = clickable_images(
-            #         images,
-            #         titles=[f"Image #{str(i)}" for i in range(len(images))],
-            #         div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
-            #         img_style={"margin": "5px", "height": "100px"},
-            #         key="image_gallery"
-            #     )
-            #
-            #     placeholder = st.container(height=500)
-            #     with placeholder.container():
-            #         if clicked:
-            #             placeholder.image(images[clicked])
-            #         else:
-            #             placeholder.image(images[0])
+            with st.expander("Bilderstrecke"):
+                paths = [f"{IMAGE_PATH}/test1.png", f"{IMAGE_PATH}/test2.png"]
+                # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
+                # LLMs gehört
+                images = []
+                for file in paths:
+                    with open(file, "rb") as image:
+                        encoded = base64.b64encode(image.read()).decode()
+                        images.append(f"data:image/jpeg;base64,{encoded}")
+
+                clicked = clickable_images(
+                    images,
+                    titles=[f"Image #{str(i)}" for i in range(len(images))],
+                    div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
+                    img_style={"margin": "5px", "height": "100px"},
+                    key="image_gallery"
+                )
+
+                placeholder = st.container(height=500)
+                with placeholder.container():
+                    if clicked:
+                        placeholder.image(images[clicked])
+                    else:
+                        placeholder.image(images[0])
