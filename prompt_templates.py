@@ -13,7 +13,7 @@ If a question does not make any sense, or is not factually coherent, explain why
 correct. If you don't know the answer to a question, please don't share false information."""
 
 
-SYS_PROMPT = """You are a respectul and honest AI-Chatbot in a conversation with a human.
+SYS_PROMPT = """You are a respectful and honest AI-Chatbot in a conversation with a human.
 The conversation you had with the human until now is delimited by the tags <history> and </history>.
 Answer the humans current question based on the context information delimited by the tags <context> and </context>.
 The current question that you must answer is delimited by the tags <question> and </question>.

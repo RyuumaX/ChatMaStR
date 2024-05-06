@@ -114,9 +114,11 @@ if __name__ == '__main__':
     # Here ends Streamlit UI configuration ============================================================================
 
     set_debug(True)
+
     KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
     IMAGE_PATH = "./KnowledgeBase/images"
     STOPWORD_PATH = "./KnowledgeBase/stopwords_german.txt"
+
     if path.exists(STOPWORD_PATH):
         stopwords = []
         with open(STOPWORD_PATH) as file:
