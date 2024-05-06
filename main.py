@@ -114,7 +114,7 @@ if __name__ == '__main__':
     # Here ends Streamlit UI configuration ============================================================================
 
     set_debug(True)
-    KNOWLEDGEBASE_PATH = "./KnowledgeBase/MastR/chromadb_experimental/"
+    KNOWLEDGEBASE_PATH = "./KnowledgeBase/chromadb_experimental/"
     STOPWORD_PATH = "./KnowledgeBase/stopwords_german.txt"
     stopwords = []
     with open(STOPWORD_PATH) as file:
@@ -205,7 +205,7 @@ if __name__ == '__main__':
 
     # give the user an input field and write out his query/message once he submits it
     if query := st.chat_input():
-        search_query = remove_words_from_text(query, stopwords)
+        # search_query = remove_words_from_text(query, stopwords)
         st.chat_message("human").write(query)
         with st.chat_message("ai"):
             # New messages are added to StreamlitChatMessageHistory when the Chain is called.
@@ -213,7 +213,7 @@ if __name__ == '__main__':
             # print(retrieve_documents_with_history_chain.invoke({"question": query}), config)
             # calling stream is the same as calling invoke for a chain but returns an iterator so we can display the
             # LLMs answer as it is being generated
-            response = st.write_stream(chain_with_history.stream({"question": search_query}, config))
+            response = st.write_stream(chain_with_history.stream({"question": query}, config))
             chat_history.add_user_message(query)
             chat_history.add_ai_message(response)
 
