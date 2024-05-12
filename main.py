@@ -37,7 +37,8 @@ def configure_retriever():
     # load persisted vectorstore
     vectorstore = Chroma(collection_name="small_chunks",
                          persist_directory="./KnowledgeBase/chromadb_prod",
-                         embedding_function=embedding)
+                         embedding_function=embedding,
+                         collection_metadata={"hnsw:space": "cosine"})
     fs = LocalFileStore("./KnowledgeBase/store_location")
     store = create_kv_docstore(fs)
     parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
