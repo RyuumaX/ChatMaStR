@@ -101,7 +101,7 @@ def trim_question(text: str):
 if __name__ == '__main__':
 
     # Streamlit UI/Page Configuration Stuff
-    pagetitle = os.environ["st_pagetitle"]
+    pagetitle = os.environ["ST_PAGETITLE"]
     st.set_page_config(page_title=pagetitle,
                        page_icon="🤖"
                        )
