@@ -55,7 +55,7 @@ def load_docs_from_path(path):
     return all_docs
 
 
-def create_vectordb_for_texts(texts, save_path):
+def create_vectordb_for_documents(texts, save_path):
     embedding_model = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
     )
@@ -152,6 +152,6 @@ if __name__ == "__main__":
             print(f"\nFile wth path '{args.stopwords}' does not exist!\n")
 
     # create a vector database containing the embeddings for the given texts (usually document chunks/spits)
-    vectordb = create_vectordb_for_texts(chunks, save_path=args.output)
+    vectordb = create_vectordb_for_documents(chunks, save_path=args.output)
     print(f"Embeddings in collection: {vectordb._collection.count()}")
     vectordb.persist()
