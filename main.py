@@ -182,7 +182,7 @@ if __name__ == '__main__':
     for idx, msg in enumerate(chat_history.messages):
         with st.chat_message(msg.type):
             st.write(msg.content)
-            if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
+            # if msg.type == "ai" and msg.content != "Wie kann ich helfen?":
                 # with st.expander("Bilderstrecke"):
                 #
                 #     paths = [f"{IMAGE_PATH}/test1.png", f"{IMAGE_PATH}/test2.png"]
