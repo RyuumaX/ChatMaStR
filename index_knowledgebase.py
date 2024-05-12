@@ -27,14 +27,15 @@ def get_pdf_docs_from_path(path):
 def get_web_docs_from_urls(path):
     fullpath = join(path, "webdocs.txt")
     if isfile(fullpath):
-        urls = [url for url in fullpath]
-        web_loader = WebBaseLoader(
-            web_paths=urls,
-            bs_kwargs=dict(
-                parse_only=bs4.SoupStrainer(["h", "article", "li"])
+        with open(fullpath) as file:
+            urls = [url for url in file]
+            web_loader = WebBaseLoader(
+                web_paths=urls,
+                bs_kwargs=dict(
+                    parse_only=bs4.SoupStrainer(["h", "article", "li"])
+                )
             )
-        )
-        web_docs = web_loader.load()
+            web_docs = web_loader.load()
     else:
         web_docs = []
     print(f"Anzahl Web-Docs: {len(web_docs)}")
