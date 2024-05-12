@@ -29,24 +29,20 @@ from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS
 @st.cache_resource(ttl="4h")
 def configure_retriever():
     knowledgebase = get_pdf_docs_from_path(path="./KnowledgeBase/")
-    knowledgebase.extend(get_web_docs_from_urls([
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendMarktakteur.html",
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendAnlagen.html",
-        "https://www.marktstammdatenregister.de/MaStRHilfe/subpages/registrierungVerpflichtendFristen.html"
-    ]))
-
     embedding = HuggingFaceEmbeddings(
-        model_name="T-Systems-onsite/german-roberta-sentence-transformer-v2",
+        model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer",
         # temporarily disabled
         # model_kwargs={'device': 'cuda:1'}
     )
     # load persisted vectorstore
-    vectorstore = Chroma(collection_name="small_chunks", persist_directory="./KnowledgeBase/chromadb_prod", embedding_function=embedding)
+    vectorstore = Chroma(collection_name="small_chunks",
+                         persist_directory="./KnowledgeBase/chromadb_prod",
+                         embedding_function=embedding)
     fs = LocalFileStore("./KnowledgeBase/store_location")
     store = create_kv_docstore(fs)
     parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
     childsplitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=100)
-    #store = InMemoryStore()
+
     big_chunk_retriever = ParentDocumentRetriever(
         vectorstore=vectorstore,
         docstore=store,
@@ -54,6 +50,7 @@ def configure_retriever():
         child_splitter=childsplitter,
         search_kwargs={'k': 5}
     )
+
     big_chunk_retriever.add_documents(knowledgebase)
     return big_chunk_retriever
 
@@ -102,8 +99,9 @@ def pretty(d, indent=0):
 if __name__ == '__main__':
     #set_debug(True)
     # Streamlit Configuration Stuff
+    pagetitle = os.environ["ST_PAGETITLE"]
     st.set_page_config(
-        page_title="MaStR Chat-Assistent",
+        page_title=pagetitle,
         page_icon="./resources/regiocom.png",
         layout="wide"
     )
@@ -121,7 +119,7 @@ if __name__ == '__main__':
 
     _, col2, _ = st.columns([2, 1, 2])
     with col2:
-        st.header("MaStR Chat-Assistent")
+        st.header(pagetitle)
 
     stream_handler = StreamHandler(st.empty())
     # StreamlitChatMessageHistory() handles adding Messages (AI, Human etc.) to the streamlit session state dictionary.
