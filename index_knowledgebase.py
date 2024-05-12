@@ -16,10 +16,10 @@ import re
 def get_pdf_docs_from_path(path):
     documents = []
     num_pdfs = 0
-    for f in tqdm(listdir(path)):
-        if isfile(join(path, f)) and f.endswith(".pdf"):
+    for file in tqdm(listdir(path)):
+        if isfile(join(path, file)) and file.endswith(".pdf"):
             num_pdfs += 1
-            documents.extend(PyPDFLoader(join(path, f)).load())
+            documents.extend(PyPDFLoader(join(path, file)).load())
     print(f"Anzahl PDF-docs: {num_pdfs}")
     return documents
 
