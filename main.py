@@ -112,7 +112,6 @@ if __name__ == '__main__':
                                        value=0.1,
                                        key="temperature_slider",
                                        )
-    # stream_handler = StreamHandler(st.empty())
     # Here ends Streamlit UI configuration ============================================================================
 
     set_debug(True)
