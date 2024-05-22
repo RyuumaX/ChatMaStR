@@ -116,7 +116,7 @@ if __name__ == '__main__':
 
     _, col1, _ = st.columns([0.5, 4, 0.5])
     with col1:
-        st.image("./resources/logo_banner_no_bnetza.png", use_column_width=True)
+        st.image("./resources/logo_banner_tdot.png", use_column_width=True)
 
     _, col2, _ = st.columns([2, 1, 2])
     with col2:
