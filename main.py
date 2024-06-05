@@ -102,7 +102,7 @@ if __name__ == '__main__':
         page_icon="./resources/regiocom.png",
         layout="wide"
     )
-
+    st.header(pagetitle)
     with st.sidebar:
         temperature_slider = st.slider("Temperaturregler:",
                                        0.0, 1.0,
@@ -110,13 +110,7 @@ if __name__ == '__main__':
                                        key="temperature_slider",
                                        )
 
-    _, col1, _ = st.columns([0.5, 4, 0.5])
-    with col1:
-        st.image("./resources/logo_banner_no_bnetza.png", use_column_width=True)
 
-    _, col2, _ = st.columns([2, 1, 2])
-    with col2:
-        st.header(pagetitle)
 
     stream_handler = StreamHandler(st.empty())
     # StreamlitChatMessageHistory() handles adding Messages (AI, Human etc.) to the streamlit session state dictionary.
