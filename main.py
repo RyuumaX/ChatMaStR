@@ -1,13 +1,10 @@
 import os.path
-import pathlib
-import shutil
 
 import bs4
 import streamlit as st
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
 from langchain.memory import ConversationBufferMemory
 from langchain.retrievers import ParentDocumentRetriever
-from langchain.schema import ChatMessage
 from langchain.storage import LocalFileStore
 from langchain.storage._lc_store import create_kv_docstore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -15,11 +12,10 @@ from langchain_community.chat_message_histories import StreamlitChatMessageHisto
 from langchain_community.document_loaders import PyPDFDirectoryLoader, WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage
 from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import format_document
 from langchain_openai.chat_models import ChatOpenAI
-import json
 
 from callback_handlers import StreamHandler, PrintRetrievalHandler
 from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS, SYS_PROMPT, \
@@ -98,7 +94,7 @@ def pretty(d, indent=0):
 
 
 if __name__ == '__main__':
-    #set_debug(True)
+    # set_debug(True)
     # Streamlit Configuration Stuff
     pagetitle = os.environ["ST_PAGETITLE"]
     st.set_page_config(
@@ -154,9 +150,7 @@ if __name__ == '__main__':
                                            memory=memory
                                            )
 
-
     # streamlit.session_state is streamlits global dictionary for saving session state
-    #if st.session_state["message_history"]
     if len(st_chat_messages.messages) == 0:
         st_chat_messages.add_ai_message(AIMessage(content="Wie kann ich helfen?"))
     pretty(st.session_state)
@@ -165,23 +159,15 @@ if __name__ == '__main__':
         st.chat_message(msg.type).write(msg.content)
 
     if query := st.chat_input('Geben Sie hier Ihre Anfrage ein.'):
-        if query == "killdb":
-            if os.path.isfile("./KnowledgeBase/chromadb_prod/chroma.sqlite3"):
-                os.remove("./KnowledgeBase/chromadb_prod/chroma.sqlite3")
-        else:
-            #st.session_state["message_history"].append(HumanMessage(content=query))
-            st.chat_message("user").write(query)
+        st.chat_message("user").write(query)
 
-            with st.chat_message("ai"):
-                stream_handler = StreamHandler(st.empty())
-                retrieval_handler = PrintRetrievalHandler(st.container())
-                # finally, run the chain, which invokes the llm-chatcompletion under the hood
+        with st.chat_message("ai"):
+            stream_handler = StreamHandler(st.empty())
+            retrieval_handler = PrintRetrievalHandler(st.container())
 
-                response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
-                #response = conv_chain.invoke({"question": query}, {"callbacks": [retrieval_handler, stream_handler]})
-                #response = qa_chain.run(query, callbacks=[retrieval_handler, stream_handler])
-                print("=====RESPONSE=====")
-                pretty(response, indent=2)
-                #st.session_state["message_history"].append(AIMessage(content=response["result"]))
-                print("=====STREAMLIT SESSION DICT=====")
-                pretty(st.session_state, indent=2)
+            # finally, run the chain, which invokes the llm-chatcompletion under the hood
+            response = qa_chain.invoke({"query": query}, {"callbacks": [retrieval_handler, stream_handler]})
+            print("=====RESPONSE=====")
+            pretty(response, indent=2)
+            print("=====STREAMLIT SESSION DICT=====")
+            pretty(st.session_state, indent=2)

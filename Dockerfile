@@ -2,6 +2,9 @@
 
 FROM python:3.10-slim
 
+ENV app_name=main.py
+ENV port_num=8501
+
 WORKDIR /app
 
 RUN apt-get update
@@ -19,4 +22,5 @@ EXPOSE 8501
 
 #HEALTHCHECK CMD curl --fail http://localhost:8501/chatmastr/_stcore/health
 
-ENTRYPOINT ["./entrypoint.sh"]
+#ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["streamlit run ${app_name} --server.port=${port_num}"]
