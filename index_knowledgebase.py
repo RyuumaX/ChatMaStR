@@ -12,7 +12,13 @@ from langchain_community.vectorstores.chroma import Chroma
 from tqdm import tqdm
 
 
-def get_pdf_docs_from_path(path):
+def get_pdf_docs_from_path(path: str) -> list[any]:
+    """
+    Takes a path to a folder containing pdfs to be used as part of the RAG Systems Knowledgebase and returns a list of
+    those documents.
+    :param path: path to the pdf files
+    :return: list of document objects
+    """
     documents = []
     num_pdfs = 0
     for file in tqdm(listdir(path)):
@@ -24,6 +30,11 @@ def get_pdf_docs_from_path(path):
 
 
 def get_web_docs_from_urls(path):
+    """
+    Takes a path to a 'webdocs.txt' file and reads URLs from it. Generates a list of documents parsed from those URLs.
+    :param path: path to webdocs.txt file
+    :return: list of documents objects generated from URLs
+    """
     fullpath = join(path, "webdocs.txt")
     if isfile(fullpath):
         with open(fullpath) as file:
@@ -42,6 +53,11 @@ def get_web_docs_from_urls(path):
 
 
 def load_docs_from_path(path):
+    """
+    Wrapper method that takes a path and calls get_pdf_docs_from_path and get_webdocs_from_path for that path
+    :param path: path to pdf docs and webdocs.txt
+    :return: list of document objects
+    """
     # Read documents
     pdf_docs = get_pdf_docs_from_path(path)
     print(f"Anzahl Seiten von PDF-docs: {len(pdf_docs)}")
@@ -54,20 +70,36 @@ def load_docs_from_path(path):
     return all_docs
 
 
-def create_vectordb_for_documents(texts, save_path):
+def create_vectordb_for_documents(docs, save_path):
+    """
+    creates a chroma vector database from a list of documents
+    :param docs: list of documents
+    :param save_path: where to save the resulting vectordb
+    :return: created vector database object
+    """
     embedding_model = HuggingFaceEmbeddings(
         model_name="T-Systems-onsite/cross-en-de-roberta-sentence-transformer"
     )
-    test_embedding = embedding_model.embed_documents(texts[0].page_content)
+    # calculate a test embedding to show to print on the console
+    test_embedding = embedding_model.embed_documents(docs[0].page_content)
     n = 5
     print(f"\n==========FIRST EMBEDDING ({len(test_embedding[:n])} OF {len(test_embedding[0])} DIMENSIONS):=========\n")
     print(test_embedding[0][:n], "...")
-    vectorstore = Chroma.from_documents(collection_name="small_chunks", documents=texts, embedding=embedding_model,
+    # create the actual chroma database
+    vectorstore = Chroma.from_documents(collection_name="small_chunks", documents=docs, embedding=embedding_model,
                                         persist_directory=save_path, collection_metadata={"hnsw:space": "l2"})
     return vectorstore
 
 
 def split_texts_into_chunks(texts, chunksize, chunk_overlap=0, splitter="recursive"):
+    """
+    splits texts into smaller chunks
+    :param texts: list of texts to be split
+    :param chunksize: size of the resulting chunks
+    :param chunk_overlap: how much each chunk overlaps with the following chunk
+    :param splitter: which type of textsplitter to use (recursive, character, token)
+    :return:
+    """
     if splitter == "recursive":
         splitter = RecursiveCharacterTextSplitter(chunk_size=chunksize, chunk_overlap=chunk_overlap,
                                                   separators=["\n\n", "\n", "(?<=\. )", " ", ""]
@@ -85,6 +117,12 @@ def split_texts_into_chunks(texts, chunksize, chunk_overlap=0, splitter="recursi
 
 
 def remove_words_from_text(text: str, words: list[str]) -> str:
+    """
+    method to extract words from a string.
+    :param text: original text string.
+    :param words: list of words to be removed from the text.
+    :return: string not containing the given words.
+    """
     # resultwords = [word for word in re.split("\W+", text) if word.lower() not in words]
     # result = ' '.join(resultwords)
 

@@ -2,8 +2,9 @@ import base64
 import os
 from operator import itemgetter
 from os import path
+
 import streamlit as st
-from langchain.chains import ConversationalRetrievalChain
+from langchain.globals import set_debug
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.retrievers import ParentDocumentRetriever
 from langchain.storage._lc_store import create_kv_docstore
@@ -11,26 +12,25 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
-from langchain_core.memory import BaseMemory
 from langchain_core.messages import get_buffer_string
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import format_document
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
-from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai.chat_models import ChatOpenAI
-from langchain.globals import set_debug
-from callback_handlers import StreamHandler, PrintRetrievalHandler
-from prompt_templates import DEFAULT_SYSTEM_PROMPT, B_INST, E_INST, B_SYS, E_SYS, SYS_PROMPT, \
-    INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
-from langsmith.wrappers import wrap_openai
-from langsmith import traceable
 from st_clickable_images import clickable_images
-from index_knowledgebase import remove_words_from_text
+
+from prompt_templates import DEFAULT_SYSTEM_PROMPT, SYS_PROMPT, \
+    INSTRUCTION_PROMPT_TEMPLATE, DOC_PROMPT_TEMPLATE, STANDALONE_QUESTION_FROM_HISTORY_TEMPLATE
 
 
 @st.cache_resource(ttl="2h")
 def configure_retriever(vectorstore_path):
+    """
+    Method that takes a path to a vectorestore and returns a retriever object to interact with that vectorstore.
+    :param vectorstore_path: path to the actual vectorstore file (sqlite file in our case)
+    :return: retriever object that acts as a wrapper around the vector database
+    """
     if path.exists(vectorstore_path):
         print(f"Found Knowledgebase at {vectorstore_path}")
     else:
@@ -40,32 +40,21 @@ def configure_retriever(vectorstore_path):
                          persist_directory=vectorstore_path,
                          embedding_function=embedding
                          )
-    #retriever = vectorstore.as_retriever(search_type="similarity_score_threshold",
-     #                                    search_kwargs={"k": 6, "score_threshold": 0.64})
+    # retriever = vectorstore.as_retriever(search_type="similarity_score_threshold",
+    #                                    search_kwargs={"k": 6, "score_threshold": 0.64})
 
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 5})
     print(f"\n========Vectorstore Collection Count: {vectorstore._collection.count()}=======\n")
     return retriever
 
 
-def configure_parent_retriever(docstore_path, vectorstore):
-    docstore = create_kv_docstore(docstore_path)
-    parentsplitter = RecursiveCharacterTextSplitter(chunk_size=1600, chunk_overlap=200,
-                                                    separators=["\n\n", "\n", "(?<=\. )", " ", ""]
-                                                    )
-    childsplitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=100,
-                                                   separators=["\n\n", "\n", "(?<=\. )", " ", ""]
-                                                   )
-    big_chunk_retriever = ParentDocumentRetriever(
-        vectorstore=vectorstore,
-        docstore=docstore,
-        parent_splitter=parentsplitter,
-        child_splitter=childsplitter,
-        search_kwargs={'k': 5}
-    )
-
-
 def add_prompt_templates_together(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT):
+    """
+    Joins several prompt templates together. Usually an Instruction Prompt and a system prompt.
+    :param instruction: Abitrary Instruction Prompt.
+    :param new_system_prompt: System Prompt to be used.
+    :return: joined prompt
+    """
     system_prompt = new_system_prompt
     prompt_template = system_prompt + "\n" + instruction
     return prompt_template
@@ -75,11 +64,25 @@ def combine_documents(docs,
                       document_prompt=PromptTemplate.from_template(DOC_PROMPT_TEMPLATE),
                       document_separator="\n\n"
                       ):
+    """
+    Combines several documents into one string for later use with an LLM
+    :param docs: List of document objects to be combined.
+    :param document_prompt: Prompt that extracts the page content of a document object.
+    :param document_separator: seperator to put in between the documents page contents when creating the resulting
+    string
+    :return: String containing all documents' page contents
+    """
     doc_strings = [format_document(doc, document_prompt) for doc in docs]
     return document_separator.join(doc_strings)
 
 
 def pretty(d, indent=0):
+    """
+    Simple helper method for pretty printing the contents of a dictionary with indentation.
+    :param d: the dictionary to be printed
+    :param indent: indentation depth
+    :return:
+    """
     for key, value in d.items():
         print('\t' * indent + str(key))
         if isinstance(value, dict):
@@ -87,15 +90,20 @@ def pretty(d, indent=0):
         else:
             print('\t' * (indent + 1) + str(value))
 
-def show_big_img(img):
-    st.session_state["big_img"] = img
 
+def trim_question(text: str) -> str:
+    """
+    Takes a string and trimms off all given sub strings.
+    :param text: Text to be trimmed.
+    :return: returns new string without all the trimmed off sub strings.
+    """
 
-def trim_question(text: str):
-    new = text.replace("Standalone-Folgefrage:", "").strip()
-    new = new.replace("Standalone question:", "").strip()
-    new = new.replace("Standalone Frage:", "").strip()
-    return new
+    substrings = ["Standalone-Folgefrage:", "Standalone question:", "Standalone Frage:"]
+    for substring in substrings:
+        trimmed_text = text.replace(substring, "").strip()
+        text = trimmed_text
+
+    return text
 
 
 if __name__ == '__main__':
@@ -226,7 +234,7 @@ if __name__ == '__main__':
                 retrieved_docs = retriever.invoke(query)
                 for doc in retrieved_docs:
                     source = path.basename(doc.metadata["source"])
-                    st.markdown("**"+source+"**")
+                    st.markdown("**" + source + "**")
                     st.markdown(doc.page_content)
             if os.environ["ST_SHOW_GALLERY"] == "TRUE":
                 with st.expander("Bilderstrecke"):
