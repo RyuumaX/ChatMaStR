@@ -185,8 +185,8 @@ if __name__ == '__main__':
                 with st.expander("Bilderstrecke"):
 
                     paths = [f"{IMAGE_PATH}/test1.png", f"{IMAGE_PATH}/test2.png"]
-                    # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort
-                    # des LLMs gehört
+                    # images could become a list of images in the st_session_state dict that belong to the respective
+                    # LLMs answer
                     images = []
                     for file in paths:
                         with open(file, "rb") as image:
@@ -208,7 +208,7 @@ if __name__ == '__main__':
                         else:
                             placeholder.image(images[0])
 
-    # give the user an input field and write out his query/message once he submits it
+    # give the user an input field and write out their query/message once they submit it
     if query := st.chat_input():
         # search_query = remove_words_from_text(query, stopwords)
         st.chat_message("human").write(query)
@@ -231,8 +231,6 @@ if __name__ == '__main__':
             if os.environ["ST_SHOW_GALLERY"] == "TRUE":
                 with st.expander("Bilderstrecke"):
                     paths = [f"{IMAGE_PATH}/test1.png", f"{IMAGE_PATH}/test2.png"]
-                    # images könnte eine liste von Bildern im st_session_state dict werden die zur jeweiligen Antwort des
-                    # LLMs gehört
                     images = []
                     for file in paths:
                         with open(file, "rb") as image:

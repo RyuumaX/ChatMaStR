@@ -10,7 +10,6 @@ from langchain_community.document_loaders import (WebBaseLoader, PyPDFLoader)
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
 from tqdm import tqdm
-import re
 
 
 def get_pdf_docs_from_path(path):
