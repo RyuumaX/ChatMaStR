@@ -23,4 +23,3 @@ EXPOSE $PORT_NUMBER
 #HEALTHCHECK CMD curl --fail http://localhost:8501/chatmastr/_stcore/health
 
 CMD streamlit run $APP_NAME --server.port=$PORT_NUMBER
-#ENTRYPOINT ["streamlit run ${app_name} --server.port=${port_num}"]
