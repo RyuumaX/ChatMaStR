@@ -2,8 +2,8 @@
 
 FROM python:3.10-slim
 
-ENV app_name=main.py
-ENV port_num=8501
+ENV APP_NAME=main.py
+ENV PORT_NUMBER=8501
 
 WORKDIR /app
 
@@ -18,9 +18,9 @@ COPY . .
 
 RUN pip3 install -r requirements.txt
 
-EXPOSE 8501
+EXPOSE $PORT_NUMBER
 
 #HEALTHCHECK CMD curl --fail http://localhost:8501/chatmastr/_stcore/health
 
-ENTRYPOINT ["./entrypoint.sh"]
+CMD streamlit run $APP_NAME --server.port=$PORT_NUMBER
 #ENTRYPOINT ["streamlit run ${app_name} --server.port=${port_num}"]
